@@ -1,0 +1,138 @@
+.dashboard-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+}
+
+.dashboard-sidebar {
+  border-right: 1px solid #e8ebf4;
+  background: #ffffff;
+  padding: 1.5rem 1rem;
+}
+
+.brand {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #5661d5;
+  margin-bottom: 2rem;
+}
+
+.sidebar-section + .sidebar-section {
+  margin-top: 1.5rem;
+}
+
+.sidebar-title {
+  font-size: 0.75rem;
+  color: #8a8faa;
+  text-transform: uppercase;
+  margin: 0 0 0.75rem;
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.sidebar-link {
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.5rem;
+  color: #67708d;
+  font-size: 0.92rem;
+}
+
+.sidebar-link-active {
+  background: #eef1ff;
+  color: #3f4bbb;
+  font-weight: 600;
+}
+
+.dashboard-main {
+  padding: 1rem 1.25rem;
+}
+
+.dashboard-topbar {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-input {
+  width: min(560px, 100%);
+  border: 1px solid #e2e8f7;
+  border-radius: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  background: #fff;
+}
+
+.profile-chip {
+  padding: 0.55rem 0.9rem;
+  border: 1px solid #e2e8f7;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.9rem;
+}
+
+.dashboard-content {
+  padding: 0.5rem 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #e8ebf4;
+  border-radius: 0.85rem;
+  padding: 1rem;
+}
+
+.stat-title {
+  margin: 0;
+  color: #7b839f;
+  font-size: 0.9rem;
+}
+
+.stat-value {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1.4rem;
+  color: #1f2440;
+}
+
+.stat-note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #5f8d5c;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid #e8ebf4;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-topbar {
+    flex-direction: column;
+    align-items: stretch;
+    height: auto;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
