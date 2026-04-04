@@ -1,38 +1,133 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../../../shared/i18n/I18nProvider';
 import Pagination from '../../../shared/components/ui/Pagination';
 import Modal from '../../../shared/components/ui/Modal';
+import { SkeletonCard, SkeletonRow } from '../../../shared/components/ui/Skeleton';
+import { toast } from 'react-toastify';
+import { addProduct, getProducts, updateProduct } from '../../../services/api/dummyJsonApi';
 
 const PAGE_SIZE = 5;
+
+function mapProduct(product) {
+  return {
+    id: product.id,
+    name: product.title,
+    sku: product.sku || `PRD-${1000 + product.id}`,
+    stock: Number(product.stock || 0),
+    price: `$${Number(product.price || 0).toFixed(2)}`,
+    category: product.category || 'general',
+  };
+}
+
+function parsePrice(value) {
+  const cleaned = String(value || '').replace(/[^\d.]/g, '');
+  return Number(cleaned || 0);
+}
 
 function MenuPage() {
   const { t } = useI18n();
   const [page, setPage] = useState(1);
+  const [query, setQuery] = useState('');
+  const [stockFilter, setStockFilter] = useState('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [modal, setModal] = useState({ open: false, mode: 'add', row: null });
-  const products = [
-    { name: 'Wireless Earbuds', sku: 'PRD-1001', stock: 84, price: '$125.00' },
-    { name: 'Smart Watch Pro', sku: 'PRD-1002', stock: 42, price: '$210.00' },
-    { name: 'Portable Speaker', sku: 'PRD-1003', stock: 110, price: '$89.00' },
-    { name: 'Gaming Headset', sku: 'PRD-1004', stock: 56, price: '$145.00' },
-    { name: 'Laptop Stand', sku: 'PRD-1005', stock: 73, price: '$59.00' },
-    { name: '4K Action Camera', sku: 'PRD-1006', stock: 18, price: '$330.00' },
-    { name: 'Mechanical Keyboard', sku: 'PRD-1007', stock: 45, price: '$175.00' },
-    { name: 'USB-C Hub', sku: 'PRD-1008', stock: 90, price: '$65.00' },
-    { name: 'Webcam HD', sku: 'PRD-1009', stock: 38, price: '$79.00' },
-    { name: 'Smart Desk Lamp', sku: 'PRD-1010', stock: 67, price: '$92.00' },
-  ];
-  const totalPages = Math.ceil(products.length / PAGE_SIZE);
+  const [products, setProducts] = useState([]);
+  const [form, setForm] = useState({ name: '', sku: '', price: '', stock: '' });
+
+  useEffect(() => {
+    let ignore = false;
+    setIsLoading(true);
+    getProducts()
+      .then((response) => {
+        if (!ignore) {
+          setProducts(response.map(mapProduct));
+        }
+      })
+      .catch(() => {
+        if (!ignore) {
+          setProducts([]);
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      ignore = true;
+    };
+  }, []);
+  const filteredProducts = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return products.filter((product) => {
+      const matchesQuery =
+        !q ||
+        product.name.toLowerCase().includes(q) ||
+        product.sku.toLowerCase().includes(q);
+      const matchesStock =
+        stockFilter === 'all' ||
+        (stockFilter === 'low' && product.stock < 50) ||
+        (stockFilter === 'high' && product.stock >= 50);
+      return matchesQuery && matchesStock;
+    });
+  }, [products, query, stockFilter]);
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
   const rows = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
-    return products.slice(start, start + PAGE_SIZE);
-  }, [page, products]);
+    return filteredProducts.slice(start, start + PAGE_SIZE);
+  }, [page, filteredProducts]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, stockFilter]);
 
   function openAddModal() {
+    setForm({ name: '', sku: `PRD-${1000 + products.length + 1}`, price: '', stock: '' });
     setModal({ open: true, mode: 'add', row: null });
   }
 
   function openUpdateModal(row) {
+    if (!row) return;
+    setForm({
+      name: row.name || '',
+      sku: row.sku || '',
+      price: String(parsePrice(row.price)),
+      stock: String(row.stock || 0),
+    });
     setModal({ open: true, mode: 'update', row });
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        title: form.name.trim() || 'New Product',
+        price: parsePrice(form.price),
+        stock: Number(form.stock || 0),
+        category: modal.row?.category || 'general',
+      };
+
+      if (modal.mode === 'add') {
+        const created = await addProduct(payload);
+        setProducts((prev) => [mapProduct(created), ...prev]);
+        toast.success('Product added successfully');
+      } else if (modal.row?.id) {
+        const updated = await updateProduct(modal.row.id, payload);
+        setProducts((prev) =>
+          prev.map((product) =>
+            product.id === modal.row.id
+              ? { ...product, ...mapProduct({ ...modal.row, ...updated }), sku: form.sku || product.sku }
+              : product
+          )
+        );
+        toast.success('Product updated successfully');
+      }
+      setModal((prev) => ({ ...prev, open: false }));
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -43,23 +138,42 @@ function MenuPage() {
           <p className="text-sm text-[#96a0b7] dark:text-[#94a3b8]">{t('products.subtitle')}</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => openUpdateModal(rows[0] || products[0])} className="rounded-md border border-[#e7eaf4] bg-white px-4 py-2 text-xs font-bold text-[#6170da] dark:border-[#2f3b54] dark:bg-[#111827] dark:text-[#9eb0ff]">{t('products.update_product')}</button>
           <button onClick={openAddModal} className="rounded-md bg-[#5468d8] px-4 py-2 text-xs font-bold text-white">{t('products.add_product')}</button>
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-3 rounded-sm border border-[#e6e8ef] bg-white p-4 dark:border-[#283247] dark:bg-[#111827]">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search product name or SKU..."
+          className="h-10 min-w-[220px] flex-1 rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
+        />
+        <select
+          value={stockFilter}
+          onChange={(e) => setStockFilter(e.target.value)}
+          className="h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
+        >
+          <option value="all">All Stock</option>
+          <option value="low">Low Stock</option>
+          <option value="high">Healthy Stock</option>
+        </select>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          [t('products.total_products'), '1,248'],
-          [t('products.low_stock'), '36'],
-          [t('products.out_of_stock'), '9'],
-          [t('products.drafts'), '14'],
-        ].map(([label, value]) => (
-          <article key={label} className="rounded-sm border border-[#e6e8ef] bg-white px-5 py-4 dark:border-[#283247] dark:bg-[#111827]">
-            <p className="text-xs uppercase tracking-wide text-[#9ba4b9]">{label}</p>
-            <p className="mt-1 text-2xl font-extrabold text-[#1f2440] dark:text-[#e5e7eb]">{value}</p>
-          </article>
-        ))}
+        {isLoading
+          ? Array.from({ length: 4 }, (_, index) => <SkeletonCard key={`product-card-skeleton-${index}`} />)
+          : [
+              [t('products.total_products'), String(products.length)],
+              [t('products.low_stock'), String(products.filter((item) => item.stock < 25).length)],
+              [t('products.out_of_stock'), String(products.filter((item) => item.stock <= 0).length)],
+              [t('products.drafts'), String(new Set(products.map((item) => item.category)).size)],
+            ].map(([label, value]) => (
+              <article key={label} className="rounded-sm border border-[#e6e8ef] bg-white px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-sm dark:border-[#283247] dark:bg-[#111827]">
+                <p className="text-xs uppercase tracking-wide text-[#9ba4b9]">{label}</p>
+                <p className="mt-1 text-2xl font-extrabold text-[#1f2440] dark:text-[#e5e7eb]">{value}</p>
+              </article>
+            ))}
       </div>
 
       <div className="overflow-hidden rounded-sm border border-[#e6e8ef] bg-white dark:border-[#283247] dark:bg-[#111827]">
@@ -74,8 +188,10 @@ function MenuPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((product) => (
-              <tr key={product.sku} className="border-b border-[#f0f2f8] text-sm text-[#4c5674] dark:border-[#1f2a3d] dark:text-[#c7d2e4]">
+            {isLoading
+              ? Array.from({ length: PAGE_SIZE }, (_, index) => <SkeletonRow key={`product-skeleton-${index}`} columns={5} />)
+              : rows.map((product) => (
+              <tr key={product.sku} className="border-b border-[#f0f2f8] text-sm text-[#4c5674] transition hover:bg-[#fafbff] dark:border-[#1f2a3d] dark:text-[#c7d2e4] dark:hover:bg-[#182235]">
                 <td className="px-5 py-3 font-semibold text-[#2a3150] dark:text-[#e2e8f0]">{product.name}</td>
                 <td className="px-5 py-3">{product.sku}</td>
                 <td className="px-5 py-3">{product.stock}</td>
@@ -88,7 +204,10 @@ function MenuPage() {
           </tbody>
         </table>
 
-        <div className="flex items-center justify-end border-t border-[#edf0f7] px-5 py-4 dark:border-[#283247]">
+        <div className="flex items-center justify-between border-t border-[#edf0f7] px-5 py-4 dark:border-[#283247]">
+          <p className="text-xs text-[#9aa3b8] dark:text-[#94a3b8]">
+            Showing {filteredProducts.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filteredProducts.length)} of {filteredProducts.length}
+          </p>
           <Pagination page={page} setPage={setPage} totalPages={totalPages} />
         </div>
       </div>
@@ -99,20 +218,28 @@ function MenuPage() {
         title={`${modal.mode === 'add' ? t('common.add') : t('common.update')} ${t('products.title')}`}
         subtitle={t('products.subtitle')}
       >
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setModal((p) => ({ ...p, open: false })); }}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('products.col_product')}
-              <input defaultValue={modal.row?.name || ''} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('products.col_price')}
-              <input defaultValue={modal.row?.price || ''} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input value={form.price} onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+            </label>
+            <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
+              {t('products.col_sku')}
+              <input value={form.sku} onChange={(e) => setForm((prev) => ({ ...prev, sku: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+            </label>
+            <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
+              {t('products.col_stock')}
+              <input value={form.stock} onChange={(e) => setForm((prev) => ({ ...prev, stock: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
             </label>
           </div>
           <div className="flex justify-end gap-2">
-            <button type="button" onClick={() => setModal((p) => ({ ...p, open: false }))} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">Cancel</button>
-            <button type="submit" className="rounded-md bg-[#5468d8] px-4 py-2 text-xs font-bold text-white">Save</button>
+            <button type="button" disabled={isSubmitting} onClick={() => setModal((p) => ({ ...p, open: false }))} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">Cancel</button>
+            <button type="submit" disabled={isSubmitting} className="rounded-md bg-[#5468d8] px-4 py-2 text-xs font-bold text-white disabled:opacity-70">{isSubmitting ? 'Saving...' : 'Save'}</button>
           </div>
         </form>
       </Modal>

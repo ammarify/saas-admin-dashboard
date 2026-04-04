@@ -1,7 +1,45 @@
+import { useEffect, useState } from 'react';
 import { useI18n } from '../../../shared/i18n/I18nProvider';
+import { getProducts } from '../../../services/api/dummyJsonApi';
+import { SkeletonCard } from '../../../shared/components/ui/Skeleton';
 
 function SettingsPage() {
   const { t } = useI18n();
+  const [metrics, setMetrics] = useState({
+    revenue: '$0.00',
+    conversion: '0%',
+    avgOrder: '$0.00',
+    bounce: '0%',
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let ignore = false;
+    setIsLoading(true);
+    getProducts()
+      .then((products) => {
+        if (!ignore) {
+          const revenue = products.reduce((sum, product) => sum + Number(product.price || 0) * Number(product.stock || 1), 0);
+          const avgOrder = products.length ? revenue / products.length : 0;
+          const conversion = Math.min(12, products.length / 8);
+          setMetrics({
+            revenue: `$${revenue.toFixed(2)}`,
+            conversion: `${conversion.toFixed(1)}%`,
+            avgOrder: `$${avgOrder.toFixed(2)}`,
+            bounce: `${Math.max(18, 42 - Math.round(conversion))}%`,
+          });
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   return (
     <section className="space-y-5">
       <div>
@@ -10,24 +48,26 @@ function SettingsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          [t('analytics.revenue'), '$98,752'],
-          [t('analytics.conversion'), '4.2%'],
-          [t('analytics.avg_order'), '$76'],
-          [t('analytics.bounce'), '31%'],
-        ].map(([label, value]) => (
-          <article key={label} className="rounded-sm border border-[#e6e8ef] bg-white px-5 py-4 dark:border-[#283247] dark:bg-[#111827]">
-            <p className="text-xs uppercase tracking-wide text-[#9ba4b9]">{label}</p>
-            <p className="mt-1 text-2xl font-extrabold text-[#1f2440] dark:text-[#e5e7eb]">{value}</p>
-          </article>
-        ))}
+        {isLoading
+          ? Array.from({ length: 4 }, (_, index) => <SkeletonCard key={`analytics-skeleton-${index}`} />)
+          : [
+              [t('analytics.revenue'), metrics.revenue],
+              [t('analytics.conversion'), metrics.conversion],
+              [t('analytics.avg_order'), metrics.avgOrder],
+              [t('analytics.bounce'), metrics.bounce],
+            ].map(([label, value]) => (
+              <article key={label} className="rounded-sm border border-[#e6e8ef] bg-white px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:border-[#283247] dark:bg-[#111827]">
+                <p className="text-xs uppercase tracking-wide text-[#9ba4b9]">{label}</p>
+                <p className="mt-1 text-2xl font-extrabold text-[#1f2440] dark:text-[#e5e7eb]">{value}</p>
+              </article>
+            ))}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <article className="rounded-sm border border-[#e6e8ef] bg-white p-5 dark:border-[#283247] dark:bg-[#111827]">
+        <article className="rounded-sm border border-[#e6e8ef] bg-white p-5 transition-all duration-200 hover:shadow-sm dark:border-[#283247] dark:bg-[#111827]">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold text-[#1f2440] dark:text-[#e5e7eb]">{t('analytics.revenue_trend')}</h2>
-            <button className="rounded-md border border-[#e7eaf4] px-3 py-1.5 text-xs font-semibold text-[#6170da] dark:border-[#2f3b54] dark:text-[#9eb0ff]">{t('common.view_report')}</button>
+            <button className="rounded-md border border-[#e7eaf4] px-3 py-1.5 text-xs font-semibold text-[#6170da] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#f8faff] hover:shadow-sm dark:border-[#2f3b54] dark:text-[#9eb0ff] dark:hover:bg-[#182235]">{t('common.view_report')}</button>
           </div>
           <div className="h-[220px] border-y border-dashed border-[#edf0f7] pt-3 dark:border-[#283247]">
             <svg viewBox="0 0 500 220" className="h-full w-full">
@@ -37,7 +77,7 @@ function SettingsPage() {
           </div>
         </article>
 
-        <article className="rounded-sm border border-[#e6e8ef] bg-white p-5 dark:border-[#283247] dark:bg-[#111827]">
+        <article className="rounded-sm border border-[#e6e8ef] bg-white p-5 transition-all duration-200 hover:shadow-sm dark:border-[#283247] dark:bg-[#111827]">
           <h2 className="mb-4 text-lg font-bold text-[#1f2440] dark:text-[#e5e7eb]">{t('analytics.traffic_sources')}</h2>
           <div className="space-y-4">
             {[
@@ -46,7 +86,7 @@ function SettingsPage() {
               [t('analytics.social'), 18],
               [t('analytics.direct'), 12],
             ].map(([name, percent]) => (
-              <div key={name}>
+              <div key={name} className="rounded-md px-2 py-1 transition-colors hover:bg-[#f8faff] dark:hover:bg-[#182235]">
                 <div className="mb-1 flex items-center justify-between text-sm text-[#5f6987] dark:text-[#c7d2e4]">
                   <span>{name}</span>
                   <span className="font-semibold">{percent}%</span>

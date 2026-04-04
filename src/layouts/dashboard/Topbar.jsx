@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../shared/i18n/I18nProvider';
+import { APP_PATHS } from '../../routes/paths';
+import { clearAuthSession } from '../../shared/config/auth';
 
 function Topbar({ onMenuToggle, isDark, onThemeToggle }) {
+  const navigate = useNavigate();
   const { language, setLanguage, t } = useI18n();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const notificationRef = useRef(null);
@@ -40,7 +44,7 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle }) {
           type="button"
           onClick={onMenuToggle}
           aria-label={t('topbar.toggle_sidebar')}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-[#e7e9f2] text-[#8b95af] hover:bg-[#f8f9fd] dark:border-[#2f3b54] dark:text-[#94a3b8] dark:hover:bg-[#182235]"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-[#e7e9f2] text-[#8b95af] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#f8f9fd] hover:shadow-sm dark:border-[#2f3b54] dark:text-[#94a3b8] dark:hover:bg-[#182235]"
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M4 7h16M4 12h16M4 17h16" />
@@ -58,7 +62,7 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle }) {
             <path d="m20 20-3.2-3.2" />
           </svg>
           <input
-            className="h-10 w-full rounded-md border border-[#ebedf5] bg-[#f8f9fd] pl-4 pr-9 text-[13px] text-[#5f6987] outline-none placeholder:text-[#c0c6d6] focus:border-[#cad1e8] dark:border-[#2f3b54] dark:bg-[#111827] dark:text-[#d1d8e6] dark:placeholder:text-[#73819b] dark:focus:border-[#4d5f90]"
+            className="h-10 w-full rounded-md border border-[#ebedf5] bg-[#f8f9fd] pl-4 pr-9 text-[13px] text-[#5f6987] outline-none transition-all duration-200 placeholder:text-[#c0c6d6] hover:border-[#d7dff1] focus:border-[#cad1e8] dark:border-[#2f3b54] dark:bg-[#111827] dark:text-[#d1d8e6] dark:placeholder:text-[#73819b] dark:hover:border-[#415179] dark:focus:border-[#4d5f90]"
             type="search"
             placeholder={t('topbar.search_placeholder')}
           />
@@ -68,8 +72,19 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle }) {
       <div className="flex w-full items-center justify-end gap-3 sm:ml-6 sm:w-auto">
         <button
           type="button"
+          onClick={() => {
+            clearAuthSession();
+            navigate(APP_PATHS.login, { replace: true });
+          }}
+          className="rounded-md border border-[#e7e9f2] px-3 py-2 text-xs font-bold text-[#c45555] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#fff5f5] hover:shadow-sm dark:border-[#2f3b54] dark:text-[#ff9e9e] dark:hover:bg-[#2a1b27]"
+        >
+          Logout
+        </button>
+
+        <button
+          type="button"
           onClick={onThemeToggle}
-          className="grid h-9 w-9 place-items-center rounded-md border border-[#e7e9f2] text-[#6f7a96] hover:bg-[#f8f9fd] dark:border-[#2f3b54] dark:text-[#c5cede] dark:hover:bg-[#182235]"
+          className="grid h-9 w-9 place-items-center rounded-md border border-[#e7e9f2] text-[#6f7a96] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#f8f9fd] hover:shadow-sm dark:border-[#2f3b54] dark:text-[#c5cede] dark:hover:bg-[#182235]"
           aria-label={t('topbar.toggle_theme')}
         >
           {isDark ? (
@@ -87,7 +102,7 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle }) {
         <button
           type="button"
           onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
-          className="rounded-md border border-[#e7e9f2] px-3 py-2 text-xs font-bold text-[#6f7a96] hover:bg-[#f8f9fd] dark:border-[#2f3b54] dark:text-[#c5cede] dark:hover:bg-[#182235]"
+          className="rounded-md border border-[#e7e9f2] px-3 py-2 text-xs font-bold text-[#6f7a96] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#f8f9fd] hover:shadow-sm dark:border-[#2f3b54] dark:text-[#c5cede] dark:hover:bg-[#182235]"
           aria-label={t('topbar.toggle_language')}
         >
           {language === 'en' ? 'AR' : 'EN'}
@@ -95,7 +110,7 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle }) {
 
         <button
           type="button"
-          className="flex items-center gap-2 rounded-full text-[13px] font-semibold text-[#5f6987] dark:text-[#d5dbea]"
+          className="flex items-center gap-2 rounded-full border border-transparent px-2 py-1 text-[13px] font-semibold text-[#5f6987] transition-all duration-200 hover:border-[#e7e9f2] hover:bg-[#f8f9fd] dark:text-[#d5dbea] dark:hover:border-[#2f3b54] dark:hover:bg-[#182235]"
         >
           <div className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-[#ffd9a5] to-[#f7a83a] text-[11px] font-bold text-white">
             E
@@ -116,7 +131,7 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle }) {
           <button
             type="button"
             onClick={() => setIsNotificationOpen((prev) => !prev)}
-            className="relative grid h-7 w-7 place-items-center text-[#9ea7bf] dark:text-[#90a0be]"
+            className="relative grid h-7 w-7 place-items-center rounded-md text-[#9ea7bf] transition-all duration-200 hover:bg-[#f8f9fd] hover:text-[#6f7a96] dark:text-[#90a0be] dark:hover:bg-[#182235] dark:hover:text-[#c5cede]"
             aria-label="Open notifications"
           >
             <svg
@@ -142,7 +157,7 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle }) {
               </div>
               <div className="max-h-[320px] overflow-y-auto">
                 {notifications.map((item) => (
-                  <div key={item.id} className="border-b border-[#f0f2f8] px-4 py-3 last:border-b-0 dark:border-[#1f2a3d]">
+                  <div key={item.id} className="border-b border-[#f0f2f8] px-4 py-3 transition-colors hover:bg-[#f8faff] last:border-b-0 dark:border-[#1f2a3d] dark:hover:bg-[#182235]">
                     <div className="mb-1 flex items-center justify-between">
                       <p className="text-sm font-bold text-[#26304d] dark:text-[#e2e8f0]">{item.title}</p>
                       {item.unread ? <span className="h-2 w-2 rounded-full bg-[#5468d8]" /> : null}

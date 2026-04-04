@@ -1,13 +1,41 @@
+import { useEffect, useState } from 'react';
 import { useI18n } from '../../../shared/i18n/I18nProvider';
+import { getCarts } from '../../../services/api/dummyJsonApi';
 
 function EcommerceDashboardPage() {
   const { t } = useI18n();
-  const products = [
-    [t('products.item_earbuds') || 'Wireless Earbuds', '$ 125.00'],
-    [t('products.item_watch') || 'Smart Watch Pro', '$ 210.00'],
-    [t('products.item_speaker') || 'Portable Speaker', '$ 89.00'],
-    [t('products.item_headset') || 'Gaming Headset', '$ 145.00'],
-  ];
+  const [summary, setSummary] = useState({
+    totalSales: '$0.00',
+    orderCount: 0,
+    topProducts: [],
+  });
+
+  useEffect(() => {
+    let ignore = false;
+    getCarts()
+      .then((carts) => {
+        if (!ignore) {
+          const totalSales = carts.reduce((sum, cart) => sum + Number(cart.total || 0), 0);
+          const topProducts = carts
+            .flatMap((cart) => cart.products || [])
+            .slice(0, 4)
+            .map((item) => [`Product #${item.id}`, `$${Number(item.total || 0).toFixed(2)}`]);
+          setSummary({
+            totalSales: `$${totalSales.toFixed(2)}`,
+            orderCount: carts.length,
+            topProducts,
+          });
+        }
+      })
+      .catch(() => {
+        if (!ignore) {
+          setSummary({ totalSales: '$0.00', orderCount: 0, topProducts: [] });
+        }
+      });
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   return (
     <section className="overflow-hidden rounded-sm border border-[#e6e8ef] bg-white dark:border-[#283247] dark:bg-[#111827]">
@@ -21,14 +49,14 @@ function EcommerceDashboardPage() {
             <div>
               <p className="text-[19px] font-bold text-[#222840] dark:text-[#e5e7eb]">{t('dashboard.total_sales')}</p>
               <p className="mt-2 text-[37px] font-extrabold tracking-tight text-[#1f2440] dark:text-[#e5e7eb]">
-                $ 98,752
+                {summary.totalSales}
               </p>
               <p className="mt-1 text-[13px] font-semibold text-[#23a16d]">
                 {t('dashboard.vs_last_week_up')}
               </p>
               <p className="mt-4 text-[13px] text-[#a0a8bc]">{t('dashboard.sales_period')}</p>
             </div>
-            <button className="rounded-md border border-[#e9ecf5] px-5 py-2 text-[12px] font-bold text-[#6473db] dark:border-[#2f3b54] dark:text-[#9eb0ff]">
+            <button className="rounded-md border border-[#e9ecf5] px-5 py-2 text-[12px] font-bold text-[#6473db] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#f8faff] hover:shadow-sm dark:border-[#2f3b54] dark:text-[#9eb0ff] dark:hover:bg-[#182235]">
               {t('common.view_report')}
             </button>
           </div>
@@ -69,7 +97,7 @@ function EcommerceDashboardPage() {
               <p className="text-[19px] font-bold text-[#222840] dark:text-[#e5e7eb]">{t('dashboard.order_time')}</p>
               <p className="mt-2 text-[13px] text-[#a0a8bc]">{t('dashboard.order_time_period')}</p>
             </div>
-            <button className="rounded-md border border-[#e9ecf5] px-5 py-2 text-[12px] font-bold text-[#6473db] dark:border-[#2f3b54] dark:text-[#9eb0ff]">
+            <button className="rounded-md border border-[#e9ecf5] px-5 py-2 text-[12px] font-bold text-[#6473db] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#f8faff] hover:shadow-sm dark:border-[#2f3b54] dark:text-[#9eb0ff] dark:hover:bg-[#182235]">
               {t('common.view_report')}
             </button>
           </div>
@@ -147,9 +175,9 @@ function EcommerceDashboardPage() {
           <p className="text-[27px] font-extrabold text-[#1f2440] dark:text-[#e5e7eb]">{t('dashboard.top_selling')}</p>
           <p className="mt-2 text-[13px] text-[#a0a8bc]">{t('dashboard.top_selling_subtitle')}</p>
 
-          <div className="mt-8 space-y-4">
-            {products.map(([item, price]) => (
-              <div key={item} className="flex items-center justify-between border-b border-[#f0f2f8] pb-3 dark:border-[#283247] last:border-b-0">
+            <div className="mt-8 space-y-4">
+            {summary.topProducts.map(([item, price]) => (
+              <div key={item} className="flex items-center justify-between rounded-md border-b border-[#f0f2f8] px-2 pb-3 pt-2 transition-colors hover:bg-[#f8faff] dark:border-[#283247] dark:hover:bg-[#182235] last:border-b-0">
                 <div className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#f8c07a] via-[#e16d43] to-[#84b56a]" />
                   <p className="text-[14px] font-semibold text-[#515a77] dark:text-[#c7d2e4]">{item}</p>
@@ -164,13 +192,13 @@ function EcommerceDashboardPage() {
           <div className="mb-3 flex items-start justify-between">
             <div>
               <p className="text-[27px] font-extrabold text-[#1f2440] dark:text-[#e5e7eb]">{t('dashboard.orders')}</p>
-              <p className="mt-1 text-[42px] font-extrabold leading-none text-[#1f2440] dark:text-[#e5e7eb]">2,568</p>
+              <p className="mt-1 text-[42px] font-extrabold leading-none text-[#1f2440] dark:text-[#e5e7eb]">{summary.orderCount.toLocaleString()}</p>
               <p className="mt-2 text-[13px] font-semibold text-[#ea5d5d]">
                 {t('dashboard.vs_last_week_down')}
               </p>
               <p className="mt-3 text-[13px] text-[#a0a8bc]">{t('dashboard.orders_period')}</p>
             </div>
-            <button className="rounded-md border border-[#e9ecf5] px-5 py-2 text-[12px] font-bold text-[#6473db] dark:border-[#2f3b54] dark:text-[#9eb0ff]">
+            <button className="rounded-md border border-[#e9ecf5] px-5 py-2 text-[12px] font-bold text-[#6473db] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#f8faff] hover:shadow-sm dark:border-[#2f3b54] dark:text-[#9eb0ff] dark:hover:bg-[#182235]">
               {t('common.view_report')}
             </button>
           </div>

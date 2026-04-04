@@ -105,10 +105,10 @@ function Sidebar({ isMobileOpen, isDesktopOpen, onClose }) {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] font-medium transition-colors ${
+                  `flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-[#e6ebff] text-[#5367d6]'
-                      : 'text-[#7d869f] hover:bg-[#e9edf8] dark:text-[#9cabc6] dark:hover:bg-[#182235]'
+                      ? 'bg-[#e6ebff] text-[#5367d6] shadow-[inset_0_0_0_1px_rgba(83,103,214,0.14)]'
+                      : 'text-[#7d869f] hover:translate-x-0.5 hover:bg-[#e9edf8] hover:text-[#5f6fd8] dark:text-[#9cabc6] dark:hover:bg-[#182235] dark:hover:text-[#c9d4f6]'
                   }`
                 }
                 onClick={() => onClose()}
@@ -132,10 +132,10 @@ function Sidebar({ isMobileOpen, isDesktopOpen, onClose }) {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] font-medium transition-colors ${
+                  `flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-[#e6ebff] text-[#5367d6]'
-                      : 'text-[#7d869f] hover:bg-[#e9edf8] dark:text-[#9cabc6] dark:hover:bg-[#182235]'
+                      ? 'bg-[#e6ebff] text-[#5367d6] shadow-[inset_0_0_0_1px_rgba(83,103,214,0.14)]'
+                      : 'text-[#7d869f] hover:translate-x-0.5 hover:bg-[#e9edf8] hover:text-[#5f6fd8] dark:text-[#9cabc6] dark:hover:bg-[#182235] dark:hover:text-[#c9d4f6]'
                   }`
                 }
                 onClick={() => onClose()}
