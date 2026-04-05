@@ -69,9 +69,9 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle, isDesktopSidebarOpen, sea
   }
 
   return (
-    <header className="sticky top-0 z-30 mx-4 mt-4 rounded-[24px] border border-white/60 bg-white/82 px-4 py-3 shadow-[0_16px_42px_rgba(148,163,184,0.14)] backdrop-blur-xl dark:border-white/8 dark:bg-[#0f172a]/80 dark:shadow-[0_20px_50px_rgba(2,6,23,0.38)] sm:mx-6 lg:mx-8 xl:mx-10">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="flex min-w-0 flex-1 items-center gap-3 lg:max-w-[620px]">
+    <header className="sticky top-0 z-30 mx-3 mt-3 rounded-[24px] border border-white/60 bg-white/82 px-3 py-3 shadow-[0_16px_42px_rgba(148,163,184,0.14)] backdrop-blur-xl dark:border-white/8 dark:bg-[#0f172a]/80 dark:shadow-[0_20px_50px_rgba(2,6,23,0.38)] sm:mx-6 sm:mt-4 sm:px-4 lg:mx-8 xl:mx-10">
+      <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
+      <div className="flex min-w-0 w-full flex-1 items-center gap-3 lg:max-w-[620px]">
         <button
           type="button"
           onClick={onMenuToggle}
@@ -105,8 +105,8 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle, isDesktopSidebarOpen, sea
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3">
-        <label className="group relative overflow-hidden rounded-xl border border-[#dfe8f7] bg-[linear-gradient(135deg,#ffffff_0%,#f4f8ff_100%)] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_8px_18px_rgba(148,163,184,0.08)] transition hover:border-[#cad8f0] hover:bg-white dark:border-[#33415f] dark:bg-[linear-gradient(135deg,rgba(18,28,46,0.98),rgba(24,36,58,0.94))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_18px_32px_rgba(2,6,23,0.32)] dark:hover:border-[#42537a] dark:hover:bg-[linear-gradient(135deg,rgba(22,34,55,1),rgba(28,41,67,0.96))]">
+      <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:gap-3 lg:w-auto lg:flex-nowrap">
+        <label className="group relative min-w-0 overflow-hidden rounded-xl border border-[#dfe8f7] bg-[linear-gradient(135deg,#ffffff_0%,#f4f8ff_100%)] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_8px_18px_rgba(148,163,184,0.08)] transition hover:border-[#cad8f0] hover:bg-white dark:border-[#33415f] dark:bg-[linear-gradient(135deg,rgba(18,28,46,0.98),rgba(24,36,58,0.94))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_18px_32px_rgba(2,6,23,0.32)] dark:hover:border-[#42537a] dark:hover:bg-[linear-gradient(135deg,rgba(22,34,55,1),rgba(28,41,67,0.96))]">
           <span className="sr-only">{t('topbar.language_dropdown')}</span>
           <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[#94a3b8] dark:text-[#90a3c3]">
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -121,7 +121,7 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle, isDesktopSidebarOpen, sea
           <select
             value={language}
             onChange={(event) => setLanguage(event.target.value)}
-            className="min-w-[124px] appearance-none bg-transparent pl-6 pr-6 text-xs font-bold uppercase tracking-[0.16em] text-[#334155] outline-none dark:text-[#edf3ff]"
+            className="min-w-[112px] appearance-none bg-transparent pl-6 pr-6 text-[11px] font-bold uppercase tracking-[0.12em] text-[#334155] outline-none dark:text-[#edf3ff] sm:min-w-[124px] sm:text-xs sm:tracking-[0.16em]"
             aria-label={t('topbar.language_dropdown')}
           >
             <option value="en">{isArabic ? 'الإنجليزية' : 'English'}</option>
@@ -135,10 +135,10 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle, isDesktopSidebarOpen, sea
             clearAuthSession();
             navigate(APP_PATHS.login, { replace: true });
           }}
-          className="group relative overflow-hidden rounded-xl border border-[#dfe7f4] bg-[linear-gradient(135deg,#ffffff_0%,#f4f7fe_100%)] px-3.5 py-2.5 text-xs font-bold tracking-[0.08em] text-[#44516f] shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_10px_24px_rgba(148,163,184,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#cad6ec] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_16px_30px_rgba(148,163,184,0.14)] dark:border-[#33415f] dark:bg-[linear-gradient(135deg,rgba(17,28,46,0.98),rgba(26,39,63,0.95))] dark:text-[#dbe7fb] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_18px_34px_rgba(2,6,23,0.34)] dark:hover:border-[#43537a] dark:hover:bg-[linear-gradient(135deg,rgba(22,34,55,1),rgba(31,46,75,0.97))]"
+          className="group relative min-w-0 overflow-hidden rounded-xl border border-[#dfe7f4] bg-[linear-gradient(135deg,#ffffff_0%,#f4f7fe_100%)] px-3 py-2.5 text-[11px] font-bold tracking-[0.06em] text-[#44516f] shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_10px_24px_rgba(148,163,184,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#cad6ec] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_16px_30px_rgba(148,163,184,0.14)] dark:border-[#33415f] dark:bg-[linear-gradient(135deg,rgba(17,28,46,0.98),rgba(26,39,63,0.95))] dark:text-[#dbe7fb] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_18px_34px_rgba(2,6,23,0.34)] dark:hover:border-[#43537a] dark:hover:bg-[linear-gradient(135deg,rgba(22,34,55,1),rgba(31,46,75,0.97))] sm:px-3.5 sm:text-xs sm:tracking-[0.08em]"
         >
           <span className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-[linear-gradient(90deg,rgba(84,104,216,0.12),rgba(84,104,216,0))] dark:bg-[linear-gradient(90deg,rgba(129,140,248,0.2),rgba(129,140,248,0))]" />
-          <span className="relative flex items-center gap-2">
+            <span className="relative flex items-center gap-1.5 sm:gap-2">
             <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#5468d8] dark:text-[#9eb0ff]" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="M15 17l5-5-5-5" />
               <path d="M20 12H9" />
@@ -213,7 +213,7 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle, isDesktopSidebarOpen, sea
           </button>
 
           {isNotificationOpen ? (
-            <div className={`absolute top-14 z-50 w-[340px] overflow-hidden rounded-[24px] border border-[#e7ebf5] bg-white/95 shadow-[0_20px_45px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-white/8 dark:bg-[#111827]/96 ${
+            <div className={`absolute top-14 z-50 w-[min(340px,calc(100vw-1.5rem))] overflow-hidden rounded-[24px] border border-[#e7ebf5] bg-white/95 shadow-[0_20px_45px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-white/8 dark:bg-[#111827]/96 sm:w-[340px] ${
               isArabic ? 'left-0' : 'right-0'
             }`}>
               <div className="flex items-center justify-between border-b border-[#edf0f7] px-5 py-4 dark:border-[#283247]">

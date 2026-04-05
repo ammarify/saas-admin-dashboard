@@ -114,7 +114,7 @@ function EcommerceDashboardPage() {
 
   return (
     <section className="space-y-5">
-      <div className="grid gap-4 xl:grid-cols-[1.25fr_0.85fr_0.85fr]">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-[1.25fr_0.85fr_0.85fr]">
         {[
           [t('dashboard.total_sales'), summary.totalSales, t('dashboard.vs_last_week_up')],
           [t('dashboard.orders'), summary.orderCount.toLocaleString(), t('dashboard.orders_period')],
@@ -126,7 +126,7 @@ function EcommerceDashboardPage() {
               index === 0
                 ? 'border-[#dde6f8] bg-[linear-gradient(135deg,#ffffff_0%,#f5f8ff_48%,#eef3ff_100%)] dark:border-[#334267] dark:bg-[linear-gradient(135deg,rgba(35,49,78,0.94)_0%,rgba(18,28,50,0.92)_100%)]'
                 : 'border-white/60 bg-white/75 dark:border-white/8 dark:bg-white/5'
-            }`}
+            } ${index === 0 ? 'sm:col-span-2 xl:col-span-1' : ''}`}
           >
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#94a3b8] dark:text-[#7c8ba3]">{label}</p>
             <p className="mt-3 text-[2rem] font-extrabold tracking-tight text-[#172033] dark:text-white">{value}</p>
@@ -144,7 +144,7 @@ function EcommerceDashboardPage() {
       {visibleSectionIds.has('sales-overview') || visibleSectionIds.has('order-time') ? (
       <div className="grid grid-cols-12 border-b border-[#e6e8ef]/80 dark:border-[#283247]">
         {visibleSectionIds.has('sales-overview') ? (
-        <div className={`col-span-12 border-b border-[#e6e8ef]/80 p-7 dark:border-[#283247] ${visibleSectionIds.has('order-time') ? 'xl:col-span-8 xl:border-b-0 xl:border-r' : ''}`}>
+        <div className={`col-span-12 border-b border-[#e6e8ef]/80 p-5 dark:border-[#283247] sm:p-7 ${visibleSectionIds.has('order-time') ? 'xl:col-span-8 xl:border-b-0 xl:border-r' : ''}`}>
           <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
           <h1 className="text-[34px] font-extrabold leading-none text-[#1d2341] dark:text-[#e5e7eb]">
@@ -157,7 +157,7 @@ function EcommerceDashboardPage() {
           </button>
           </div>
 
-          <div className="mb-6 mt-8 flex items-start justify-between gap-4">
+          <div className="mb-6 mt-8 flex flex-col items-start justify-between gap-4 sm:flex-row">
             <div>
               <p className="text-[18px] font-bold text-[#222840] dark:text-[#e5e7eb]">{t('dashboard.total_sales')}</p>
               <p className="mt-2 text-[34px] font-extrabold tracking-tight text-[#1f2440] dark:text-[#e5e7eb]">
@@ -175,13 +175,13 @@ function EcommerceDashboardPage() {
           </div>
 
           <div className="mt-7">
-            <div className="relative h-48 rounded-[24px] border border-[#edf1fa] bg-[linear-gradient(180deg,#fdfefe_0%,#f7f9ff_100%)] px-4 pb-5 pt-5 dark:border-white/8 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.02)_100%)]">
+            <div className="relative h-40 rounded-[24px] border border-[#edf1fa] bg-[linear-gradient(180deg,#fdfefe_0%,#f7f9ff_100%)] px-3 pb-4 pt-4 dark:border-white/8 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.02)_100%)] sm:h-48 sm:px-4 sm:pb-5 sm:pt-5">
               <div className="absolute inset-x-4 top-1/2 border-t border-dashed border-[#edf0f7] dark:border-[#283247]" />
               <div className="flex h-full items-end justify-between">
                 {[46, 34, 41, 31, 50, 55, 45, 39, 42, 31, 50, 55].map((v, i) => (
                   <div key={`g-${i}`} className="flex items-end gap-1.5">
-                    <div className="w-2 rounded-t-[10px] bg-[linear-gradient(180deg,#7c8cff_0%,#4f62d8_100%)] shadow-[0_10px_24px_rgba(79,98,216,0.26)]" style={{ height: `${v + 8}px` }} />
-                    <div className="w-2 rounded-t-[10px] bg-[#dce1eb] dark:bg-[#334155]" style={{ height: `${Math.max(v - 10, 24)}px` }} />
+                    <div className="w-1.5 rounded-t-[10px] bg-[linear-gradient(180deg,#7c8cff_0%,#4f62d8_100%)] shadow-[0_10px_24px_rgba(79,98,216,0.26)] sm:w-2" style={{ height: `${v + 8}px` }} />
+                    <div className="w-1.5 rounded-t-[10px] bg-[#dce1eb] dark:bg-[#334155] sm:w-2" style={{ height: `${Math.max(v - 10, 24)}px` }} />
                   </div>
                 ))}
               </div>
@@ -191,7 +191,7 @@ function EcommerceDashboardPage() {
                 <span key={n}>{n}</span>
               ))}
             </div>
-            <div className="mt-4 flex items-center gap-6 text-[13px] text-[#8f98af] dark:text-[#c7d2e4]">
+            <div className="mt-4 flex flex-wrap items-center gap-4 text-[13px] text-[#8f98af] dark:text-[#c7d2e4] sm:gap-6">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-[#4f62d8]" />
                 {t('dashboard.legend_last_6_days')}
@@ -206,7 +206,7 @@ function EcommerceDashboardPage() {
         ) : null}
 
         {visibleSectionIds.has('order-time') ? (
-        <div className={`col-span-12 p-7 ${visibleSectionIds.has('sales-overview') ? 'xl:col-span-4' : ''}`}>
+        <div className={`col-span-12 p-5 sm:p-7 ${visibleSectionIds.has('sales-overview') ? 'xl:col-span-4' : ''}`}>
           <div className="mb-6 flex items-start justify-between">
             <div>
               <p className="text-[19px] font-bold text-[#222840] dark:text-[#e5e7eb]">{t('dashboard.order_time')}</p>
@@ -219,21 +219,21 @@ function EcommerceDashboardPage() {
 
           <div className="relative flex justify-center pt-4">
             <div
-              className="h-44 w-44 rounded-full shadow-[0_24px_50px_rgba(99,102,241,0.2)]"
+              className="h-36 w-36 rounded-full shadow-[0_24px_50px_rgba(99,102,241,0.2)] sm:h-44 sm:w-44"
               style={{
                 background:
                   'conic-gradient(#586bd9 0 40%, #8a98ec 40% 72%, #dbe4ff 72% 100%)',
               }}
             />
-            <div className="absolute top-[42px] h-[108px] w-[108px] rounded-full bg-white dark:bg-[#0f172a]" />
-            <div className="absolute right-1 top-[32px] rounded-[24px] bg-[#202a4f] px-4 py-4 text-white shadow-[0_20px_40px_rgba(15,23,42,0.28)]">
+            <div className="absolute top-[34px] h-[88px] w-[88px] rounded-full bg-white dark:bg-[#0f172a] sm:top-[42px] sm:h-[108px] sm:w-[108px]" />
+            <div className="absolute left-1/2 top-full z-10 mt-3 w-full max-w-[220px] -translate-x-1/2 rounded-[20px] bg-[#202a4f] px-4 py-3 text-white shadow-[0_20px_40px_rgba(15,23,42,0.28)] sm:right-1 sm:left-auto sm:top-[32px] sm:mt-0 sm:w-auto sm:max-w-none sm:translate-x-0 sm:rounded-[24px] sm:py-4">
               <p className="text-[12px] font-bold">{t('dashboard.afternoon')}</p>
               <p className="text-[11px] text-[#cfd6ff]">{t('dashboard.afternoon_time')}</p>
               <p className="mt-1 text-[27px] font-extrabold leading-none">{t('dashboard.orders_count')}</p>
             </div>
           </div>
 
-          <div className="mt-9 flex items-center justify-between text-[13px] text-[#8d95ab] dark:text-[#c7d2e4]">
+          <div className="mt-24 grid grid-cols-2 gap-4 text-[13px] text-[#8d95ab] dark:text-[#c7d2e4] sm:mt-9 sm:flex sm:items-center sm:justify-between">
             <div>
               <div className="mb-1 flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-[#5569d9]" />
@@ -264,26 +264,26 @@ function EcommerceDashboardPage() {
       {visibleSectionIds.has('channel-performance') || visibleSectionIds.has('top-selling') || visibleSectionIds.has('orders') ? (
       <div className="grid grid-cols-12">
         {visibleSectionIds.has('channel-performance') ? (
-        <div className="col-span-12 border-b border-[#e6e8ef]/80 p-7 dark:border-[#283247] lg:col-span-6 xl:col-span-4 xl:border-b-0 xl:border-r">
+        <div className="col-span-12 border-b border-[#e6e8ef]/80 p-5 dark:border-[#283247] sm:p-7 lg:col-span-6 xl:col-span-4 xl:border-b-0 xl:border-r">
           <p className="text-[27px] font-extrabold text-[#1f2440] dark:text-[#e5e7eb]">{t('dashboard.channel_performance')}</p>
           <p className="mt-2 text-[13px] text-[#a0a8bc]">{t('dashboard.channel_subtitle')}</p>
 
-          <div className="relative mt-8 h-[250px]">
-            <div className="absolute left-[100px] top-[25px] grid h-[150px] w-[150px] place-items-center rounded-full border-[3px] border-[#f4a53a] text-center">
+          <div className="relative mt-6 h-[230px] sm:mt-8 sm:h-[250px]">
+            <div className="absolute left-1/2 top-[30px] grid h-[118px] w-[118px] -translate-x-1/2 place-items-center rounded-full border-[3px] border-[#f4a53a] text-center sm:left-[100px] sm:top-[25px] sm:h-[150px] sm:w-[150px] sm:translate-x-0">
               <div>
-                <p className="text-[46px] font-extrabold leading-none text-[#f2a334]">85%</p>
-                <p className="text-[16px] font-semibold text-[#f2a334]">{t('dashboard.store_ux')}</p>
+                <p className="text-[34px] font-extrabold leading-none text-[#f2a334] sm:text-[46px]">85%</p>
+                <p className="text-[13px] font-semibold text-[#f2a334] sm:text-[16px]">{t('dashboard.store_ux')}</p>
               </div>
             </div>
-            <div className="absolute left-[34px] top-[0px] grid h-[96px] w-[96px] place-items-center rounded-full border-[3px] border-[#7f86e2] bg-[#777fe2] text-center text-white">
+            <div className="absolute left-[10%] top-[8px] grid h-[82px] w-[82px] place-items-center rounded-full border-[3px] border-[#7f86e2] bg-[#777fe2] text-center text-white sm:left-[34px] sm:top-[0px] sm:h-[96px] sm:w-[96px]">
               <div>
-                <p className="text-[34px] font-extrabold leading-none">85%</p>
+                <p className="text-[26px] font-extrabold leading-none sm:text-[34px]">85%</p>
                 <p className="text-[13px] font-semibold">{t('dashboard.fulfillment')}</p>
               </div>
             </div>
-            <div className="absolute left-[0px] top-[98px] grid h-[118px] w-[118px] place-items-center rounded-full border-[3px] border-[#44bfd8] bg-[#42bbd5] text-center text-white">
+            <div className="absolute left-[6%] top-[110px] grid h-[96px] w-[96px] place-items-center rounded-full border-[3px] border-[#44bfd8] bg-[#42bbd5] text-center text-white sm:left-[0px] sm:top-[98px] sm:h-[118px] sm:w-[118px]">
               <div>
-                <p className="text-[37px] font-extrabold leading-none">92%</p>
+                <p className="text-[28px] font-extrabold leading-none sm:text-[37px]">92%</p>
                 <p className="text-[13px] font-semibold">{t('dashboard.packaging')}</p>
               </div>
             </div>
@@ -292,7 +292,7 @@ function EcommerceDashboardPage() {
         ) : null}
 
         {visibleSectionIds.has('top-selling') ? (
-        <div className="col-span-12 border-b border-[#e6e8ef]/80 p-7 dark:border-[#283247] lg:col-span-6 xl:col-span-4 xl:border-b-0 xl:border-r">
+        <div className="col-span-12 border-b border-[#e6e8ef]/80 p-5 dark:border-[#283247] sm:p-7 lg:col-span-6 xl:col-span-4 xl:border-b-0 xl:border-r">
           <p className="text-[27px] font-extrabold text-[#1f2440] dark:text-[#e5e7eb]">{t('dashboard.top_selling')}</p>
           <p className="mt-2 text-[13px] text-[#a0a8bc]">{t('dashboard.top_selling_subtitle')}</p>
 
@@ -316,7 +316,7 @@ function EcommerceDashboardPage() {
         ) : null}
 
         {visibleSectionIds.has('orders') ? (
-        <div className="col-span-12 p-7 xl:col-span-4">
+        <div className="col-span-12 p-5 sm:p-7 xl:col-span-4">
           <div className="mb-3 flex items-start justify-between">
             <div>
               <p className="text-[27px] font-extrabold text-[#1f2440] dark:text-[#e5e7eb]">{t('dashboard.orders')}</p>
@@ -357,7 +357,7 @@ function EcommerceDashboardPage() {
               <span key={n}>{n}</span>
             ))}
           </div>
-          <div className="mt-4 flex items-center gap-6 text-[13px] text-[#8f98af] dark:text-[#c7d2e4]">
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-[13px] text-[#8f98af] dark:text-[#c7d2e4] sm:gap-6">
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-[#4f62d8]" />
               {t('dashboard.legend_last_6_days')}

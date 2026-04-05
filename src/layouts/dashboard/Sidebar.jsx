@@ -93,7 +93,7 @@ function Sidebar({ isMobileOpen, isDesktopExpanded, onClose, onDesktopToggle }) 
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 flex h-full flex-col overflow-visible border-r border-white/8 bg-[linear-gradient(180deg,rgba(12,20,35,0.97)_0%,rgba(17,28,47,0.95)_50%,rgba(21,33,54,0.93)_100%)] text-white shadow-[0_24px_70px_rgba(3,8,20,0.22)] backdrop-blur-xl transition-[width,transform] duration-300 ease-out ${
+      className={`fixed inset-y-0 left-0 z-40 flex h-full max-w-[86vw] flex-col overflow-visible border-r border-white/8 bg-[linear-gradient(180deg,rgba(12,20,35,0.97)_0%,rgba(17,28,47,0.95)_50%,rgba(21,33,54,0.93)_100%)] text-white shadow-[0_24px_70px_rgba(3,8,20,0.22)] backdrop-blur-xl transition-[width,transform] duration-300 ease-out ${
         isMobileOpen ? 'translate-x-0' : '-translate-x-full'
       } lg:translate-x-0 ${isDesktopExpanded ? 'w-[288px]' : 'w-[92px]'}`}
     >
@@ -120,7 +120,7 @@ function Sidebar({ isMobileOpen, isDesktopExpanded, onClose, onDesktopToggle }) 
         onClick={onDesktopToggle}
         aria-label={t('sidebar.toggle')}
         title={t('sidebar.toggle')}
-        className="absolute -right-7 top-24 z-20 hidden h-12 w-14 place-items-center rounded-r-[18px] rounded-l-[14px] border border-white/10 bg-[linear-gradient(135deg,rgba(19,31,52,0.98)_0%,rgba(44,60,102,0.92)_100%)] text-white/90 shadow-[0_16px_34px_rgba(3,8,20,0.34)] transition-all duration-300 hover:translate-x-0.5 hover:shadow-[0_18px_38px_rgba(3,8,20,0.4)] lg:grid"
+        className="absolute -right-7 top-24 z-20 hidden h-12 w-14 place-items-center rounded-r-[18px] rounded-l-[14px] border border-white/10 bg-[linear-gradient(135deg,rgba(19,31,52,0.98)_0%,rgba(44,60,102,0.92)_100%)] text-white/90 shadow-[0_16px_34px_rgba(3,8,20,0.34)] transition-all duration-300 hover:translate-x-0.5 hover:shadow-[0_18px_38px_rgba(3,8,20,0.4)] xl:grid"
       >
         <span className="pointer-events-none absolute left-0 top-2 bottom-2 w-px bg-white/14" />
         <span className="pointer-events-none absolute inset-[1px] rounded-r-[17px] rounded-l-[13px] border border-white/6" />

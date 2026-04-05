@@ -68,7 +68,7 @@ function DashboardLayout() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />
-        <main className="relative px-4 py-6 sm:px-6 sm:py-7 lg:px-8 lg:py-8 xl:px-10">
+        <main className="relative overflow-x-hidden px-3 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8 xl:px-10">
           <Outlet context={{ searchQuery }} />
         </main>
       </div>

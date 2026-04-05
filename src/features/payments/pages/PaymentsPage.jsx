@@ -147,17 +147,17 @@ function PaymentsPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-sm border border-[#e6e8ef] bg-white p-4 dark:border-[#283247] dark:bg-[#111827]">
+      <div className="flex flex-col gap-3 rounded-sm border border-[#e6e8ef] bg-white p-4 sm:flex-row sm:flex-wrap sm:items-center dark:border-[#283247] dark:bg-[#111827]">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={isArabic ? 'ابحث عن رقم الدفعة أو الطريقة...' : 'Search payment id or method...'}
-          className="h-10 min-w-[220px] flex-1 rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
+          className="h-10 w-full min-w-0 flex-1 rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] sm:min-w-[220px] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="select-field h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
+          className="select-field h-10 w-full min-w-0 rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] sm:min-w-[180px] sm:w-auto dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
         >
           <option value="all">{isArabic ? 'جميع الحالات' : 'All Status'}</option>
           <option value="status_paid">{t('payments.status_paid')}</option>
@@ -167,7 +167,8 @@ function PaymentsPage() {
       </div>
 
       <div className="overflow-hidden rounded-sm border border-[#e6e8ef] bg-white dark:border-[#283247] dark:bg-[#111827]">
-        <table className="min-w-full text-left">
+        <div className="overflow-x-auto">
+        <table className="min-w-[720px] w-full text-left">
           <thead className="border-b border-[#edf0f7] bg-[#f9faff] text-xs uppercase tracking-wider text-[#a0a9bf] dark:border-[#283247] dark:bg-[#0f172a] dark:text-[#94a3b8]">
             <tr>
               <th className="px-5 py-3">{t('payments.col_id')}</th>
@@ -205,8 +206,9 @@ function PaymentsPage() {
             ))}
           </tbody>
         </table>
+        </div>
 
-        <div className="flex items-center justify-between border-t border-[#edf0f7] px-5 py-4 dark:border-[#283247]">
+        <div className="flex flex-col gap-3 border-t border-[#edf0f7] px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-[#283247]">
           <p className="text-xs text-[#9aa3b8] dark:text-[#94a3b8]">
             {isArabic ? 'عرض' : 'Showing'} {filteredPayments.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filteredPayments.length)} {t('orders.of')} {filteredPayments.length}
           </p>

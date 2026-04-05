@@ -147,17 +147,17 @@ function HelpPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-sm border border-[#e6e8ef] bg-white p-4 dark:border-[#283247] dark:bg-[#111827]">
+      <div className="flex flex-col gap-3 rounded-sm border border-[#e6e8ef] bg-white p-4 sm:flex-row sm:flex-wrap sm:items-center dark:border-[#283247] dark:bg-[#111827]">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={isArabic ? 'ابحث عن رقم التذكرة أو الموضوع أو المسؤول...' : 'Search ticket id, subject, or assignee...'}
-          className="h-10 min-w-[220px] flex-1 rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
+          className="h-10 w-full min-w-0 flex-1 rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] sm:min-w-[220px] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
         />
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="select-field h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
+          className="select-field h-10 w-full min-w-0 rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] sm:min-w-[180px] sm:w-auto dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
         >
           <option value="all">{isArabic ? 'جميع الأولويات' : 'All Priority'}</option>
           <option value="high">{isArabic ? 'مرتفع' : 'High'}</option>
@@ -167,7 +167,7 @@ function HelpPage() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-3">
-        <article className="rounded-sm border border-[#e6e8ef] bg-white p-5 xl:col-span-2 dark:border-[#283247] dark:bg-[#111827]">
+        <article className="rounded-sm border border-[#e6e8ef] bg-white p-4 sm:p-5 xl:col-span-2 dark:border-[#283247] dark:bg-[#111827]">
           <h2 className="mb-3 text-lg font-bold text-[#1f2440] dark:text-[#e5e7eb]">{t('support.open_tickets')}</h2>
           <div className="space-y-3">
             {isLoading
@@ -187,7 +187,7 @@ function HelpPage() {
             ))}
           </div>
 
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-[#9aa3b8] dark:text-[#94a3b8]">
               {isArabic ? 'عرض' : 'Showing'} {filteredTickets.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filteredTickets.length)} {t('orders.of')} {filteredTickets.length}
             </p>
@@ -195,7 +195,7 @@ function HelpPage() {
           </div>
         </article>
 
-        <article className="rounded-sm border border-[#e6e8ef] bg-white p-5 dark:border-[#283247] dark:bg-[#111827]">
+        <article className="rounded-sm border border-[#e6e8ef] bg-white p-4 sm:p-5 dark:border-[#283247] dark:bg-[#111827]">
           <h2 className="mb-3 text-lg font-bold text-[#1f2440] dark:text-[#e5e7eb]">{t('support.knowledge_base')}</h2>
           <ul className="space-y-2 text-sm text-[#5f6987] dark:text-[#c7d2e4]">
             <li className="rounded-md border border-[#edf0f7] p-3 dark:border-[#2b364d]">How to process refunds</li>

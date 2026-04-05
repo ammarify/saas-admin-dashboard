@@ -71,7 +71,7 @@ function SettingsPage() {
 
       <div className="grid gap-4 xl:grid-cols-2">
         <article className="rounded-sm border border-[#e6e8ef] bg-white p-5 transition-all duration-200 hover:shadow-sm dark:border-[#283247] dark:bg-[#111827]">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-lg font-bold text-[#1f2440] dark:text-[#e5e7eb]">{t('analytics.revenue_trend')}</h2>
             <button className="rounded-md border border-[#e7eaf4] px-3 py-1.5 text-xs font-semibold text-[#6170da] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#f8faff] hover:shadow-sm dark:border-[#2f3b54] dark:text-[#9eb0ff] dark:hover:bg-[#182235]">{t('common.view_report')}</button>
           </div>
