@@ -11,6 +11,7 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle, isDesktopSidebarOpen, sea
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const notificationRef = useRef(null);
   const { notifications, unreadCount, markAllAsRead } = useNotifications();
+  const isArabic = language === 'ar';
 
   const visibleNotifications = useMemo(
     () =>
@@ -20,13 +21,13 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle, isDesktopSidebarOpen, sea
             {
               id: 'empty-state',
               title: t('topbar.notifications'),
-              detail: 'Activity from product and customer changes will appear here.',
+              detail: isArabic ? 'ستظهر هنا أنشطة اللوحة.' : 'Activity from dashboard changes will appear here.',
               createdAt: Date.now(),
               unread: false,
               isEmptyState: true,
             },
           ],
-    [notifications, t]
+    [isArabic, notifications, t]
   );
 
   useEffect(() => {
@@ -55,16 +56,16 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle, isDesktopSidebarOpen, sea
     const minutes = Math.max(1, Math.floor(elapsedMs / 60000));
 
     if (minutes < 60) {
-      return `${minutes} min ago`;
+      return isArabic ? `منذ ${minutes} دقيقة` : `${minutes} min ago`;
     }
 
     const hours = Math.floor(minutes / 60);
     if (hours < 24) {
-      return `${hours} hr ago`;
+      return isArabic ? `منذ ${hours} ساعة` : `${hours} hr ago`;
     }
 
     const days = Math.floor(hours / 24);
-    return `${days} day${days > 1 ? 's' : ''} ago`;
+    return isArabic ? `منذ ${days} ${days > 1 ? 'أيام' : 'يوم'}` : `${days} day${days > 1 ? 's' : ''} ago`;
   }
 
   return (
@@ -123,8 +124,8 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle, isDesktopSidebarOpen, sea
             className="min-w-[124px] appearance-none bg-transparent pl-6 pr-6 text-xs font-bold uppercase tracking-[0.16em] text-[#334155] outline-none dark:text-[#edf3ff]"
             aria-label={t('topbar.language_dropdown')}
           >
-            <option value="en">{t('topbar.language_en')}</option>
-            <option value="ar">{t('topbar.language_ar')}</option>
+            <option value="en">{isArabic ? 'الإنجليزية' : 'English'}</option>
+            <option value="ar">{isArabic ? 'العربية' : 'Arabic'}</option>
           </select>
         </label>
 
@@ -143,7 +144,7 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle, isDesktopSidebarOpen, sea
               <path d="M20 12H9" />
               <path d="M12 19H7a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3h5" />
             </svg>
-            <span>{t('topbar.logout')}</span>
+            <span>{isArabic ? 'تسجيل الخروج' : t('topbar.logout')}</span>
           </span>
         </button>
 
@@ -212,7 +213,9 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle, isDesktopSidebarOpen, sea
           </button>
 
           {isNotificationOpen ? (
-            <div className="absolute right-0 top-14 z-50 w-[340px] overflow-hidden rounded-[24px] border border-[#e7ebf5] bg-white/95 shadow-[0_20px_45px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-white/8 dark:bg-[#111827]/96">
+            <div className={`absolute top-14 z-50 w-[340px] overflow-hidden rounded-[24px] border border-[#e7ebf5] bg-white/95 shadow-[0_20px_45px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-white/8 dark:bg-[#111827]/96 ${
+              isArabic ? 'left-0' : 'right-0'
+            }`}>
               <div className="flex items-center justify-between border-b border-[#edf0f7] px-5 py-4 dark:border-[#283247]">
                 <p className="text-sm font-extrabold text-[#1f2440] dark:text-[#e5e7eb]">{t('topbar.notifications')}</p>
                 <span className="rounded-full bg-[#edf2ff] px-2 py-0.5 text-[10px] font-bold text-[#5d70da] dark:bg-[#1c2640] dark:text-[#9eb0ff]">
@@ -228,7 +231,7 @@ function Topbar({ onMenuToggle, isDark, onThemeToggle, isDesktopSidebarOpen, sea
                     </div>
                     <p className="text-xs text-[#73809d] dark:text-[#9db0cb]">{item.detail}</p>
                     <p className="mt-1 text-[11px] text-[#9aa6be] dark:text-[#7f8da8]">
-                      {item.isEmptyState ? 'Waiting for activity' : formatRelativeTime(item.createdAt)}
+                      {item.isEmptyState ? (isArabic ? 'بانتظار النشاط' : 'Waiting for activity') : formatRelativeTime(item.createdAt)}
                     </p>
                   </div>
                 ))}

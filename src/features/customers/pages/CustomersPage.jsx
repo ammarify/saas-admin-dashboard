@@ -21,8 +21,9 @@ function mapCustomer(user) {
 }
 
 function CustomersPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { addNotification } = useNotifications();
+  const isArabic = language === 'ar';
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [orderFilter, setOrderFilter] = useState('all');
@@ -113,8 +114,8 @@ function CustomersPage() {
           ...prev,
         ]);
         addNotification({
-          title: 'Customer added',
-          detail: `${values.name.trim()} was added to customers.`,
+          title: isArabic ? 'تمت إضافة عميل' : 'Customer added',
+          detail: isArabic ? `تمت إضافة ${values.name.trim()} إلى العملاء.` : `${values.name.trim()} was added to customers.`,
         });
         toast.success('Customer added successfully');
       } else if (modal.row?.id) {
@@ -127,8 +128,8 @@ function CustomersPage() {
           )
         );
         addNotification({
-          title: 'Customer updated',
-          detail: `${values.name.trim()} was updated successfully.`,
+          title: isArabic ? 'تم تحديث العميل' : 'Customer updated',
+          detail: isArabic ? `تم تحديث ${values.name.trim()} بنجاح.` : `${values.name.trim()} was updated successfully.`,
         });
         toast.success('Customer updated successfully');
       }
@@ -153,11 +154,11 @@ function CustomersPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3 rounded-sm border border-[#e6e8ef] bg-white p-4 dark:border-[#283247] dark:bg-[#111827]">
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search customer by name or email..." className="h-10 min-w-[220px] flex-1 rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]" />
-        <select value={orderFilter} onChange={(e) => setOrderFilter(e.target.value)} className="h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]">
-          <option value="all">All Customers</option>
-          <option value="high">High Activity</option>
-          <option value="low">Low Activity</option>
+        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={isArabic ? 'ابحث عن عميل بالاسم أو البريد...' : 'Search customer by name or email...'} className="h-10 min-w-[220px] flex-1 rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]" />
+        <select value={orderFilter} onChange={(e) => setOrderFilter(e.target.value)} className="select-field h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]">
+          <option value="all">{isArabic ? 'جميع العملاء' : 'All Customers'}</option>
+          <option value="high">{isArabic ? 'نشاط مرتفع' : 'High Activity'}</option>
+          <option value="low">{isArabic ? 'نشاط منخفض' : 'Low Activity'}</option>
         </select>
       </div>
 
@@ -206,7 +207,7 @@ function CustomersPage() {
         </table>
 
         <div className="flex items-center justify-between border-t border-[#edf0f7] px-5 py-4 dark:border-[#283247]">
-          <p className="text-xs text-[#9aa3b8] dark:text-[#94a3b8]">Showing {filteredCustomers.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filteredCustomers.length)} of {filteredCustomers.length}</p>
+          <p className="text-xs text-[#9aa3b8] dark:text-[#94a3b8]">{isArabic ? 'عرض' : 'Showing'} {filteredCustomers.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filteredCustomers.length)} {t('orders.of')} {filteredCustomers.length}</p>
           <Pagination page={page} setPage={setPage} totalPages={totalPages} />
         </div>
       </div>
@@ -236,8 +237,8 @@ function CustomersPage() {
             </label>
           </div>
           <div className="flex justify-end gap-2">
-            <button type="button" disabled={isSubmitting} onClick={() => setModal((p) => ({ ...p, open: false }))} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="rounded-md bg-[#5468d8] px-4 py-2 text-xs font-bold text-white disabled:opacity-70">{isSubmitting ? 'Saving...' : 'Save'}</button>
+            <button type="button" disabled={isSubmitting} onClick={() => setModal((p) => ({ ...p, open: false }))} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">{isArabic ? 'إلغاء' : 'Cancel'}</button>
+            <button type="submit" disabled={isSubmitting} className="rounded-md bg-[#5468d8] px-4 py-2 text-xs font-bold text-white disabled:opacity-70">{isSubmitting ? (isArabic ? 'جاري الحفظ...' : 'Saving...') : (isArabic ? 'حفظ' : 'Save')}</button>
           </div>
         </form>
       </Modal>

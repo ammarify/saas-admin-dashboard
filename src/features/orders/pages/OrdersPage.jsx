@@ -31,8 +31,9 @@ function buildOrderRow(cart, index) {
 }
 
 function OrdersPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { addNotification } = useNotifications();
+  const isArabic = language === 'ar';
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
@@ -153,8 +154,8 @@ function OrdersPage() {
           ...prev,
         ]);
         addNotification({
-          title: 'Order added',
-          detail: `${values.id} for ${values.customer.trim()} was created.`,
+          title: isArabic ? 'تمت إضافة طلب' : 'Order added',
+          detail: isArabic ? `تم إنشاء ${values.id}.` : `${values.id} for ${values.customer.trim()} was created.`,
         });
         toast.success('Order added successfully');
       } else if (modal.row?.rawId) {
@@ -175,8 +176,8 @@ function OrdersPage() {
           )
         );
         addNotification({
-          title: 'Order updated',
-          detail: `${values.id} was updated successfully.`,
+          title: isArabic ? 'تم تحديث الطلب' : 'Order updated',
+          detail: isArabic ? `تم تحديث ${values.id} بنجاح.` : `${values.id} was updated successfully.`,
         });
         toast.success('Order updated successfully');
       }
@@ -206,16 +207,16 @@ function OrdersPage() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search orders, customer, item..."
+            placeholder={isArabic ? 'ابحث عن طلب أو عميل أو منتج...' : 'Search orders, customer, item...'}
             className="h-10 w-full rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
+          className="select-field h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
         >
-          <option value="all">All Status</option>
+          <option value="all">{isArabic ? 'جميع الحالات' : 'All Status'}</option>
           <option value="status_delivered">{t('orders.status_delivered')}</option>
           <option value="status_processing">{t('orders.status_processing')}</option>
           <option value="status_pending">{t('orders.status_pending')}</option>
@@ -333,7 +334,7 @@ function OrdersPage() {
               {t('orders.col_status')}
               <select
                 {...register('status', { required: 'Status is required' })}
-                className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:bg-[#0f172a] dark:text-[#e5e7eb] ${errors.status ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}
+                className={`select-field mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:bg-[#0f172a] dark:text-[#e5e7eb] ${errors.status ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}
               >
                 <option value="status_delivered">{t('orders.status_delivered')}</option>
                 <option value="status_processing">{t('orders.status_processing')}</option>
@@ -345,10 +346,10 @@ function OrdersPage() {
           </div>
           <div className="flex justify-end gap-2">
             <button type="button" onClick={closeModal} disabled={isSubmitting} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">
-              Cancel
+              {isArabic ? 'إلغاء' : 'Cancel'}
             </button>
             <button type="submit" disabled={isSubmitting} className="rounded-md bg-[#5468d8] px-4 py-2 text-xs font-bold text-white disabled:opacity-70">
-              {isSubmitting ? 'Saving...' : 'Save'}
+              {isSubmitting ? (isArabic ? 'جاري الحفظ...' : 'Saving...') : (isArabic ? 'حفظ' : 'Save')}
             </button>
           </div>
         </form>

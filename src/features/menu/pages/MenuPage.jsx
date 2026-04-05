@@ -27,8 +27,9 @@ function parsePrice(value) {
 }
 
 function MenuPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { addNotification } = useNotifications();
+  const isArabic = language === 'ar';
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [stockFilter, setStockFilter] = useState('all');
@@ -123,8 +124,8 @@ function MenuPage() {
         const created = await addProduct(payload);
         setProducts((prev) => [mapProduct(created), ...prev]);
         addNotification({
-          title: 'Product added',
-          detail: `${values.name.trim()} was added to the catalog.`,
+          title: isArabic ? 'تمت إضافة منتج' : 'Product added',
+          detail: isArabic ? `تمت إضافة ${values.name.trim()} إلى الكتالوج.` : `${values.name.trim()} was added to the catalog.`,
         });
         toast.success('Product added');
       } else if (modal.row?.id) {
@@ -137,8 +138,8 @@ function MenuPage() {
           )
         );
         addNotification({
-          title: 'Product updated',
-          detail: `${values.name.trim()} was updated successfully.`,
+          title: isArabic ? 'تم تحديث المنتج' : 'Product updated',
+          detail: isArabic ? `تم تحديث ${values.name.trim()} بنجاح.` : `${values.name.trim()} was updated successfully.`,
         });
         toast.success('Product updated successfully');
       }
@@ -166,17 +167,17 @@ function MenuPage() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search product name or SKU..."
+          placeholder={isArabic ? 'ابحث باسم المنتج أو SKU...' : 'Search product name or SKU...'}
           className="h-10 min-w-[220px] flex-1 rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
         />
         <select
           value={stockFilter}
           onChange={(e) => setStockFilter(e.target.value)}
-          className="h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
+          className="select-field h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
         >
-          <option value="all">All Stock</option>
-          <option value="low">Low Stock</option>
-          <option value="high">Healthy Stock</option>
+          <option value="all">{isArabic ? 'جميع المخزون' : 'All Stock'}</option>
+          <option value="low">{isArabic ? 'مخزون منخفض' : 'Low Stock'}</option>
+          <option value="high">{isArabic ? 'مخزون جيد' : 'Healthy Stock'}</option>
         </select>
       </div>
 
@@ -226,7 +227,7 @@ function MenuPage() {
 
         <div className="flex items-center justify-between border-t border-[#edf0f7] px-5 py-4 dark:border-[#283247]">
           <p className="text-xs text-[#9aa3b8] dark:text-[#94a3b8]">
-            Showing {filteredProducts.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filteredProducts.length)} of {filteredProducts.length}
+            {isArabic ? 'عرض' : 'Showing'} {filteredProducts.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filteredProducts.length)} {t('orders.of')} {filteredProducts.length}
           </p>
           <Pagination page={page} setPage={setPage} totalPages={totalPages} />
         </div>
@@ -262,8 +263,8 @@ function MenuPage() {
             </label>
           </div>
           <div className="flex justify-end gap-2">
-            <button type="button" disabled={isSubmitting} onClick={() => setModal((p) => ({ ...p, open: false }))} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="rounded-md bg-[#5468d8] px-4 py-2 text-xs font-bold text-white disabled:opacity-70">{isSubmitting ? 'Saving...' : 'Save'}</button>
+            <button type="button" disabled={isSubmitting} onClick={() => setModal((p) => ({ ...p, open: false }))} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">{isArabic ? 'إلغاء' : 'Cancel'}</button>
+            <button type="submit" disabled={isSubmitting} className="rounded-md bg-[#5468d8] px-4 py-2 text-xs font-bold text-white disabled:opacity-70">{isSubmitting ? (isArabic ? 'جاري الحفظ...' : 'Saving...') : (isArabic ? 'حفظ' : 'Save')}</button>
           </div>
         </form>
       </Modal>

@@ -11,8 +11,9 @@ import { useNotifications } from '../../../shared/notifications/notificationsCon
 const PAGE_SIZE = 4;
 
 function ReviewsPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { addNotification } = useNotifications();
+  const isArabic = language === 'ar';
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [ratingFilter, setRatingFilter] = useState('all');
@@ -104,8 +105,8 @@ function ReviewsPage() {
         )
       );
       addNotification({
-        title: 'Review updated',
-        detail: `Review from ${values.customer.trim()} was updated.`,
+        title: isArabic ? 'تم تحديث المراجعة' : 'Review updated',
+        detail: isArabic ? `تم تحديث مراجعة ${values.customer.trim()}.` : `Review from ${values.customer.trim()} was updated.`,
       });
       setModal({ open: false, row: null });
       toast.success('Review updated successfully');
@@ -129,17 +130,17 @@ function ReviewsPage() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search reviewer or feedback..."
+          placeholder={isArabic ? 'ابحث عن المراجع أو التعليق...' : 'Search reviewer or feedback...'}
           className="h-10 min-w-[220px] flex-1 rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
         />
         <select
           value={ratingFilter}
           onChange={(e) => setRatingFilter(e.target.value)}
-          className="h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
+          className="select-field h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
         >
-          <option value="all">All Ratings</option>
-          <option value="high">4-5 Stars</option>
-          <option value="low">1-3 Stars</option>
+          <option value="all">{isArabic ? 'جميع التقييمات' : 'All Ratings'}</option>
+          <option value="high">{isArabic ? '4-5 نجوم' : '4-5 Stars'}</option>
+          <option value="low">{isArabic ? '1-3 نجوم' : '1-3 Stars'}</option>
         </select>
       </div>
 
@@ -185,7 +186,7 @@ function ReviewsPage() {
 
       <div className="flex items-center justify-between rounded-sm border border-[#e6e8ef] bg-white px-5 py-4 dark:border-[#283247] dark:bg-[#111827]">
         <p className="text-xs text-[#9aa3b8] dark:text-[#94a3b8]">
-          Showing {filteredReviews.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filteredReviews.length)} of {filteredReviews.length}
+          {isArabic ? 'عرض' : 'Showing'} {filteredReviews.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filteredReviews.length)} {t('orders.of')} {filteredReviews.length}
         </p>
         <Pagination page={page} setPage={setPage} totalPages={totalPages} />
       </div>
@@ -207,7 +208,7 @@ function ReviewsPage() {
             {errors.customer ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.customer.message}</p> : null}
           </label>
           <label className="block text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
-            Rating
+            {isArabic ? 'التقييم' : 'Rating'}
             <input type="number" min="1" max="5" {...register('rating', { required: 'Rating is required', min: { value: 1, message: 'Rating must be at least 1' }, max: { value: 5, message: 'Rating cannot be more than 5' } })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.rating ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
             {errors.rating ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.rating.message}</p> : null}
           </label>
@@ -217,8 +218,8 @@ function ReviewsPage() {
             {errors.message ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.message.message}</p> : null}
           </label>
           <div className="flex justify-end gap-2">
-            <button type="button" disabled={isSubmitting} onClick={() => setModal({ open: false, row: null })} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="rounded-md bg-[#5468d8] px-4 py-2 text-xs font-bold text-white disabled:opacity-70">{isSubmitting ? 'Saving...' : 'Save'}</button>
+            <button type="button" disabled={isSubmitting} onClick={() => setModal({ open: false, row: null })} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">{isArabic ? 'إلغاء' : 'Cancel'}</button>
+            <button type="submit" disabled={isSubmitting} className="rounded-md bg-[#5468d8] px-4 py-2 text-xs font-bold text-white disabled:opacity-70">{isSubmitting ? (isArabic ? 'جاري الحفظ...' : 'Saving...') : (isArabic ? 'حفظ' : 'Save')}</button>
           </div>
         </form>
       </Modal>

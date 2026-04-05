@@ -11,8 +11,9 @@ import { useNotifications } from '../../../shared/notifications/notificationsCon
 const PAGE_SIZE = 4;
 
 function HelpPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { addNotification } = useNotifications();
+  const isArabic = language === 'ar';
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -113,16 +114,16 @@ function HelpPage() {
           ...prev,
         ]);
         addNotification({
-          title: 'Ticket added',
-          detail: `${values.id} was created for ${values.assignee}.`,
+          title: isArabic ? 'تمت إضافة تذكرة' : 'Ticket added',
+          detail: isArabic ? `تم إنشاء ${values.id} للمسؤول ${values.assignee}.` : `${values.id} was created for ${values.assignee}.`,
         });
         toast.success('Ticket added successfully');
       } else if (modal.row?.rawId) {
         await updatePost(modal.row.rawId, { title: values.subject, body: 'Updated from dashboard' });
         setTickets((prev) => prev.map((item) => (item.rawId === modal.row.rawId ? { ...item, id: values.id, subject: values.subject, priority: values.priority, assignee: values.assignee, status: values.status } : item)));
         addNotification({
-          title: 'Ticket updated',
-          detail: `${values.id} was updated successfully.`,
+          title: isArabic ? 'تم تحديث التذكرة' : 'Ticket updated',
+          detail: isArabic ? `تم تحديث ${values.id} بنجاح.` : `${values.id} was updated successfully.`,
         });
         toast.success('Ticket updated successfully');
       }
@@ -150,18 +151,18 @@ function HelpPage() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search ticket id, subject, or assignee..."
+          placeholder={isArabic ? 'ابحث عن رقم التذكرة أو الموضوع أو المسؤول...' : 'Search ticket id, subject, or assignee...'}
           className="h-10 min-w-[220px] flex-1 rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
         />
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
+          className="select-field h-10 min-w-[180px] rounded-md border border-[#e7ebf5] bg-[#f9faff] px-3 text-sm text-[#4c5674] outline-none transition focus:border-[#9aa8dd] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#dbe4f0]"
         >
-          <option value="all">All Priority</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
+          <option value="all">{isArabic ? 'جميع الأولويات' : 'All Priority'}</option>
+          <option value="high">{isArabic ? 'مرتفع' : 'High'}</option>
+          <option value="medium">{isArabic ? 'متوسط' : 'Medium'}</option>
+          <option value="low">{isArabic ? 'منخفض' : 'Low'}</option>
         </select>
       </div>
 
@@ -178,7 +179,7 @@ function HelpPage() {
                   <span className="text-xs font-semibold text-[#6070da]">{ticket.id}</span>
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#7d87a2] dark:text-[#94a3b8]">
-                  <span>{t('support.priority')}: {ticket.priority[0].toUpperCase() + ticket.priority.slice(1)}</span>
+                  <span>{t('support.priority')}: {isArabic ? (ticket.priority === 'high' ? 'مرتفع' : ticket.priority === 'medium' ? 'متوسط' : 'منخفض') : ticket.priority[0].toUpperCase() + ticket.priority.slice(1)}</span>
                   <span>{t('support.assignee')}: {ticket.assignee}</span>
                   <span>{t('support.status')}: {t(`support.${ticket.status}`)}</span>
                 </div>
@@ -188,7 +189,7 @@ function HelpPage() {
 
           <div className="mt-4 flex items-center justify-between">
             <p className="text-xs text-[#9aa3b8] dark:text-[#94a3b8]">
-              Showing {filteredTickets.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filteredTickets.length)} of {filteredTickets.length}
+              {isArabic ? 'عرض' : 'Showing'} {filteredTickets.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filteredTickets.length)} {t('orders.of')} {filteredTickets.length}
             </p>
             <Pagination page={page} setPage={setPage} totalPages={totalPages} />
           </div>
@@ -228,10 +229,10 @@ function HelpPage() {
           </label>
           <label className="block text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
             {t('support.priority')}
-            <select {...register('priority', { required: 'Priority is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.priority ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
+              <select {...register('priority', { required: 'Priority is required' })} className={`select-field mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.priority ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}>
+              <option value="high">{isArabic ? 'مرتفع' : 'High'}</option>
+              <option value="medium">{isArabic ? 'متوسط' : 'Medium'}</option>
+              <option value="low">{isArabic ? 'منخفض' : 'Low'}</option>
             </select>
             {errors.priority ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.priority.message}</p> : null}
           </label>
@@ -242,15 +243,15 @@ function HelpPage() {
           </label>
           <label className="block text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
             {t('support.status')}
-            <select {...register('status', { required: 'Status is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.status ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}>
+              <select {...register('status', { required: 'Status is required' })} className={`select-field mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.status ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}>
               <option value="open">{t('support.open')}</option>
               <option value="in_progress">{t('support.in_progress')}</option>
             </select>
             {errors.status ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.status.message}</p> : null}
           </label>
           <div className="flex justify-end gap-2">
-            <button type="button" disabled={isSubmitting} onClick={() => setModal({ open: false, mode: 'add', row: null })} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="rounded-md bg-[#5468d8] px-4 py-2 text-xs font-bold text-white disabled:opacity-70">{isSubmitting ? 'Saving...' : 'Save'}</button>
+            <button type="button" disabled={isSubmitting} onClick={() => setModal({ open: false, mode: 'add', row: null })} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">{isArabic ? 'إلغاء' : 'Cancel'}</button>
+            <button type="submit" disabled={isSubmitting} className="rounded-md bg-[#5468d8] px-4 py-2 text-xs font-bold text-white disabled:opacity-70">{isSubmitting ? (isArabic ? 'جاري الحفظ...' : 'Saving...') : (isArabic ? 'حفظ' : 'Save')}</button>
           </div>
         </form>
       </Modal>
