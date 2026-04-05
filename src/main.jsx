@@ -15,7 +15,19 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <BrowserRouter>
           <App />
         </BrowserRouter>
-        <ToastContainer position="top-right" autoClose={2500} />
+        <ToastContainer
+          position="top-right"
+          autoClose={2500}
+          newestOnTop
+          closeOnClick
+          hideProgressBar={false}
+          pauseOnHover
+          draggable
+          theme="colored"
+          toastClassName="dashboard-toast"
+          bodyClassName="dashboard-toast-body"
+          progressClassName="dashboard-toast-progress"
+        />
       </I18nProvider>
     </NotificationsProvider>
   </React.StrictMode>,
