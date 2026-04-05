@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useI18n } from '../../../shared/i18n/I18nProvider';
 import Pagination from '../../../shared/components/ui/Pagination';
 import Modal from '../../../shared/components/ui/Modal';
 import { SkeletonRow } from '../../../shared/components/ui/Skeleton';
 import { toast } from 'react-toastify';
 import { addOrder, getCarts, updateOrder } from '../../../services/api/dummyJsonApi';
+import { useNotifications } from '../../../shared/notifications/notificationsContext';
 
 const PAGE_SIZE = 5;
 const STATUS_SEQUENCE = ['status_delivered', 'status_processing', 'status_pending', 'status_cancelled'];
@@ -30,6 +32,7 @@ function buildOrderRow(cart, index) {
 
 function OrdersPage() {
   const { t } = useI18n();
+  const { addNotification } = useNotifications();
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
@@ -37,7 +40,14 @@ function OrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modal, setModal] = useState({ open: false, mode: 'add', row: null });
-  const [form, setForm] = useState({ id: '', customer: '', item: '', date: '', total: '', status: 'status_pending' });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: { id: '', customer: '', item: '', date: '', total: '', status: 'status_pending' },
+  });
 
   useEffect(() => {
     let ignore = false;
@@ -51,6 +61,7 @@ function OrdersPage() {
       .catch(() => {
         if (!ignore) {
           setOrders([]);
+          toast.error('Error occurred');
         }
       })
       .finally(() => {
@@ -88,7 +99,7 @@ function OrdersPage() {
   }, [query, statusFilter]);
 
   function openAddModal() {
-    setForm({
+    reset({
       id: `ORD-${10300 + orders.length + 1}`,
       customer: '',
       item: '',
@@ -101,7 +112,7 @@ function OrdersPage() {
 
   function openUpdateModal(row) {
     if (!row) return;
-    setForm({
+    reset({
       id: row.id || '',
       customer: row.customer || '',
       item: row.item || '',
@@ -117,14 +128,13 @@ function OrdersPage() {
     setModal((prev) => ({ ...prev, open: false }));
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function onSubmit(values) {
     setIsSubmitting(true);
 
     try {
       const payload = {
-        userId: modal.row?.rawId ? Number((form.customer || '').replace(/[^\d]/g, '')) || 1 : 1,
-        products: [{ id: Number((form.item || '').replace(/[^\d]/g, '')) || 1, quantity: 1 }],
+        userId: modal.row?.rawId ? Number((values.customer || '').replace(/[^\d]/g, '')) || 1 : 1,
+        products: [{ id: Number((values.item || '').replace(/[^\d]/g, '')) || 1, quantity: 1 }],
       };
 
       if (modal.mode === 'add') {
@@ -133,15 +143,19 @@ function OrdersPage() {
         setOrders((prev) => [
           {
             ...mapped,
-            id: form.id || mapped.id,
-            customer: form.customer.trim() || mapped.customer,
-            item: form.item.trim() || mapped.item,
-            date: form.date || new Date().toISOString().slice(0, 10),
-            total: formatCurrency(form.total),
-            status: form.status || 'status_pending',
+            id: values.id,
+            customer: values.customer.trim(),
+            item: values.item.trim(),
+            date: values.date,
+            total: formatCurrency(values.total),
+            status: values.status,
           },
           ...prev,
         ]);
+        addNotification({
+          title: 'Order added',
+          detail: `${values.id} for ${values.customer.trim()} was created.`,
+        });
         toast.success('Order added successfully');
       } else if (modal.row?.rawId) {
         await updateOrder(modal.row.rawId, payload);
@@ -150,20 +164,26 @@ function OrdersPage() {
             order.rawId === modal.row.rawId
               ? {
                   ...order,
-                  id: form.id || order.id,
-                  customer: form.customer.trim() || order.customer,
-                  item: form.item.trim() || order.item,
-                  date: form.date || order.date,
-                  total: formatCurrency(form.total),
-                  status: form.status || 'status_processing',
+                  id: values.id,
+                  customer: values.customer.trim(),
+                  item: values.item.trim(),
+                  date: values.date,
+                  total: formatCurrency(values.total),
+                  status: values.status,
                 }
               : order
           )
         );
+        addNotification({
+          title: 'Order updated',
+          detail: `${values.id} was updated successfully.`,
+        });
         toast.success('Order updated successfully');
       }
 
       setModal((prev) => ({ ...prev, open: false }));
+    } catch {
+      toast.error('Error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -229,14 +249,14 @@ function OrdersPage() {
                     <td className="px-5 py-3 font-semibold">{order.total}</td>
                     <td className="px-5 py-3">
                       <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] dark:shadow-none ${
                           order.status === 'status_delivered'
-                            ? 'bg-[#e9f8f0] text-[#1e9c67]'
+                            ? 'border-[#cdebdc] bg-[#eefaf4] text-[#1e9c67] dark:border-[#1f5f4a] dark:bg-[#102c24] dark:text-[#7ee2b8]'
                             : order.status === 'status_processing'
-                              ? 'bg-[#edf0ff] text-[#5368d8]'
+                              ? 'border-[#d7defb] bg-[#eef1ff] text-[#5368d8] dark:border-[#354a8a] dark:bg-[#16233f] dark:text-[#a9bbff]'
                               : order.status === 'status_pending'
-                                ? 'bg-[#fff8e9] text-[#c58d1b]'
-                                : 'bg-[#fdeeee] text-[#d45555]'
+                                ? 'border-[#f4e1b4] bg-[#fff8e9] text-[#c58d1b] dark:border-[#6b5320] dark:bg-[#31250e] dark:text-[#f3ca74]'
+                                : 'border-[#f0cfd3] bg-[#fdeeee] text-[#d45555] dark:border-[#6f3041] dark:bg-[#30111a] dark:text-[#ff9cab]'
                         }`}
                       >
                         {t(`orders.${order.status}`)}
@@ -263,60 +283,64 @@ function OrdersPage() {
         title={`${modal.mode === 'add' ? t('common.add') : t('common.update')} ${t('orders.title')}`}
         subtitle={t('orders.subtitle')}
       >
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('orders.col_order_id')}
               <input
-                value={form.id}
-                onChange={(event) => setForm((prev) => ({ ...prev, id: event.target.value }))}
-                className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#e5e7eb]"
+                {...register('id', { required: 'Order ID is required' })}
+                className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:bg-[#0f172a] dark:text-[#e5e7eb] ${errors.id ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}
               />
+              {errors.id ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.id.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('orders.col_customer')}
               <input
-                value={form.customer}
-                onChange={(event) => setForm((prev) => ({ ...prev, customer: event.target.value }))}
-                className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#e5e7eb]"
+                {...register('customer', { required: 'Customer is required' })}
+                className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:bg-[#0f172a] dark:text-[#e5e7eb] ${errors.customer ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}
               />
+              {errors.customer ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.customer.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('orders.col_item')}
               <input
-                value={form.item}
-                onChange={(event) => setForm((prev) => ({ ...prev, item: event.target.value }))}
-                className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#e5e7eb]"
+                {...register('item', { required: 'Item is required' })}
+                className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:bg-[#0f172a] dark:text-[#e5e7eb] ${errors.item ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}
               />
+              {errors.item ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.item.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('orders.col_date')}
               <input
-                value={form.date}
-                onChange={(event) => setForm((prev) => ({ ...prev, date: event.target.value }))}
-                className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#e5e7eb]"
+                type="date"
+                {...register('date', { required: 'Date is required' })}
+                className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:bg-[#0f172a] dark:text-[#e5e7eb] ${errors.date ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}
               />
+              {errors.date ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.date.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('orders.col_total')}
               <input
-                value={form.total}
-                onChange={(event) => setForm((prev) => ({ ...prev, total: event.target.value }))}
-                className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#e5e7eb]"
+                type="number"
+                min="0.01"
+                step="0.01"
+                {...register('total', { required: 'Total is required', min: { value: 0.01, message: 'Total must be greater than 0' } })}
+                className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:bg-[#0f172a] dark:text-[#e5e7eb] ${errors.total ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}
               />
+              {errors.total ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.total.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('orders.col_status')}
               <select
-                value={form.status}
-                onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value }))}
-                className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:border-[#2f3b54] dark:bg-[#0f172a] dark:text-[#e5e7eb]"
+                {...register('status', { required: 'Status is required' })}
+                className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm text-[#364152] outline-none focus:border-[#96a4da] dark:bg-[#0f172a] dark:text-[#e5e7eb] ${errors.status ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}
               >
                 <option value="status_delivered">{t('orders.status_delivered')}</option>
                 <option value="status_processing">{t('orders.status_processing')}</option>
                 <option value="status_pending">{t('orders.status_pending')}</option>
                 <option value="status_cancelled">{t('orders.status_cancelled')}</option>
               </select>
+              {errors.status ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.status.message}</p> : null}
             </label>
           </div>
           <div className="flex justify-end gap-2">

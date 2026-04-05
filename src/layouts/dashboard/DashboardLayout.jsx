@@ -6,6 +6,7 @@ import Topbar from './Topbar';
 function DashboardLayout() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isDark, setIsDark] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) return savedTheme === 'dark';
@@ -38,11 +39,13 @@ function DashboardLayout() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#f5f7fb] text-[#1d2341] dark:bg-[#0b1220] dark:text-[#e5e7eb]">
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(147,197,253,0.24),transparent_26%),radial-gradient(circle_at_top_right,rgba(196,181,253,0.18),transparent_22%),linear-gradient(180deg,#f5f7ff_0%,#eef2ff_48%,#f7f9fc_100%)] text-[#1d2341] dark:bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.18),transparent_24%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.14),transparent_18%),linear-gradient(180deg,#07111f_0%,#0b1424_46%,#0d1728_100%)] dark:text-[#e5e7eb]">
+      <div className="pointer-events-none absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:34px_34px]" />
       <Sidebar
         isMobileOpen={isMobileSidebarOpen}
-        isDesktopOpen={isDesktopSidebarOpen}
+        isDesktopExpanded={isDesktopSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
+        onDesktopToggle={() => setIsDesktopSidebarOpen((prev) => !prev)}
       />
       {isMobileSidebarOpen && (
         <button
@@ -54,16 +57,19 @@ function DashboardLayout() {
       )}
       <div
         className={`min-w-0 transition-all duration-300 ${
-          isDesktopSidebarOpen ? 'lg:pl-[250px]' : 'lg:pl-0'
+          isDesktopSidebarOpen ? 'lg:pl-[288px]' : 'lg:pl-[92px]'
         }`}
       >
         <Topbar
           onMenuToggle={handleMenuToggle}
           isDark={isDark}
           onThemeToggle={() => setIsDark((prev) => !prev)}
+          isDesktopSidebarOpen={isDesktopSidebarOpen}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
         />
-        <main className="px-6 py-6">
-          <Outlet />
+        <main className="relative px-4 py-6 sm:px-6 sm:py-7 lg:px-8 lg:py-8 xl:px-10">
+          <Outlet context={{ searchQuery }} />
         </main>
       </div>
     </div>

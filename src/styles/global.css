@@ -17,6 +17,7 @@ body {
   min-height: 100vh;
   background-color: #f5f7fb;
   color: #111827;
+  line-height: 1.5;
 }
 
 .dark body {
@@ -24,6 +25,85 @@ body {
   color: #e5e7eb;
 }
 
+.dark input,
+.dark select,
+.dark textarea {
+  color-scheme: dark;
+}
+
+.dark select option,
+.dark select optgroup {
+  background-color: #0f172a;
+  color: #e5e7eb;
+}
+
+.dark input[type='date']::-webkit-calendar-picker-indicator,
+.dark input[type='time']::-webkit-calendar-picker-indicator {
+  filter: invert(0.88) sepia(0.08) saturate(0.2) hue-rotate(180deg);
+  opacity: 0.9;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill,
+.dark select:-webkit-autofill {
+  -webkit-text-fill-color: #e5e7eb;
+  -webkit-box-shadow: 0 0 0 1000px #0f172a inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 #root {
   min-height: 100vh;
+}
+
+button,
+input,
+select,
+textarea {
+  transition: all 180ms ease;
+}
+
+button,
+select,
+a,
+[role='button'] {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+input:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+}
+
+.premium-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.32) transparent;
+}
+
+.premium-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.premium-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.premium-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.36), rgba(99, 102, 241, 0.28));
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.dark .premium-scrollbar {
+  scrollbar-color: rgba(148, 163, 184, 0.24) transparent;
+}
+
+.dark .premium-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.24), rgba(129, 140, 248, 0.22));
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }

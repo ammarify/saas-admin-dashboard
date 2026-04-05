@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useI18n } from '../../../shared/i18n/I18nProvider';
 import Pagination from '../../../shared/components/ui/Pagination';
 import Modal from '../../../shared/components/ui/Modal';
 import { SkeletonCard, SkeletonRow } from '../../../shared/components/ui/Skeleton';
 import { toast } from 'react-toastify';
 import { addProduct, getProducts, updateProduct } from '../../../services/api/dummyJsonApi';
+import { useNotifications } from '../../../shared/notifications/notificationsContext';
 
 const PAGE_SIZE = 5;
 
@@ -26,6 +28,7 @@ function parsePrice(value) {
 
 function MenuPage() {
   const { t } = useI18n();
+  const { addNotification } = useNotifications();
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [stockFilter, setStockFilter] = useState('all');
@@ -33,7 +36,14 @@ function MenuPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modal, setModal] = useState({ open: false, mode: 'add', row: null });
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState({ name: '', sku: '', price: '', stock: '' });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: { name: '', sku: '', price: '', stock: '' },
+  });
 
   useEffect(() => {
     let ignore = false;
@@ -47,6 +57,7 @@ function MenuPage() {
       .catch(() => {
         if (!ignore) {
           setProducts([]);
+          toast.error('Error occurred');
         }
       })
       .finally(() => {
@@ -83,13 +94,13 @@ function MenuPage() {
   }, [query, stockFilter]);
 
   function openAddModal() {
-    setForm({ name: '', sku: `PRD-${1000 + products.length + 1}`, price: '', stock: '' });
+    reset({ name: '', sku: `PRD-${1000 + products.length + 1}`, price: '', stock: '' });
     setModal({ open: true, mode: 'add', row: null });
   }
 
   function openUpdateModal(row) {
     if (!row) return;
-    setForm({
+    reset({
       name: row.name || '',
       sku: row.sku || '',
       price: String(parsePrice(row.price)),
@@ -98,33 +109,42 @@ function MenuPage() {
     setModal({ open: true, mode: 'update', row });
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function onSubmit(values) {
     setIsSubmitting(true);
     try {
       const payload = {
-        title: form.name.trim() || 'New Product',
-        price: parsePrice(form.price),
-        stock: Number(form.stock || 0),
+        title: values.name.trim(),
+        price: parsePrice(values.price),
+        stock: Number(values.stock),
         category: modal.row?.category || 'general',
       };
 
       if (modal.mode === 'add') {
         const created = await addProduct(payload);
         setProducts((prev) => [mapProduct(created), ...prev]);
-        toast.success('Product added successfully');
+        addNotification({
+          title: 'Product added',
+          detail: `${values.name.trim()} was added to the catalog.`,
+        });
+        toast.success('Product added');
       } else if (modal.row?.id) {
         const updated = await updateProduct(modal.row.id, payload);
         setProducts((prev) =>
           prev.map((product) =>
             product.id === modal.row.id
-              ? { ...product, ...mapProduct({ ...modal.row, ...updated }), sku: form.sku || product.sku }
+              ? { ...product, ...mapProduct({ ...modal.row, ...updated }), sku: values.sku }
               : product
           )
         );
+        addNotification({
+          title: 'Product updated',
+          detail: `${values.name.trim()} was updated successfully.`,
+        });
         toast.success('Product updated successfully');
       }
       setModal((prev) => ({ ...prev, open: false }));
+    } catch {
+      toast.error('Error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -218,23 +238,27 @@ function MenuPage() {
         title={`${modal.mode === 'add' ? t('common.add') : t('common.update')} ${t('products.title')}`}
         subtitle={t('products.subtitle')}
       >
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('products.col_product')}
-              <input value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input {...register('name', { required: 'Product name is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.name ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+              {errors.name ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.name.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('products.col_price')}
-              <input value={form.price} onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input type="number" min="0.01" step="0.01" {...register('price', { required: 'Price is required', min: { value: 0.01, message: 'Price must be greater than 0' } })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.price ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+              {errors.price ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.price.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('products.col_sku')}
-              <input value={form.sku} onChange={(e) => setForm((prev) => ({ ...prev, sku: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input {...register('sku', { required: 'SKU is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.sku ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+              {errors.sku ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.sku.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('products.col_stock')}
-              <input value={form.stock} onChange={(e) => setForm((prev) => ({ ...prev, stock: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input type="number" min="0" {...register('stock', { required: 'Stock is required', min: { value: 0, message: 'Stock cannot be negative' } })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.stock ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+              {errors.stock ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.stock.message}</p> : null}
             </label>
           </div>
           <div className="flex justify-end gap-2">

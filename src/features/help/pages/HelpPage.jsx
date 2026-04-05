@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useI18n } from '../../../shared/i18n/I18nProvider';
 import Pagination from '../../../shared/components/ui/Pagination';
 import Modal from '../../../shared/components/ui/Modal';
 import { SkeletonCard } from '../../../shared/components/ui/Skeleton';
 import { toast } from 'react-toastify';
 import { addPost, getPosts, updatePost } from '../../../services/api/dummyJsonApi';
+import { useNotifications } from '../../../shared/notifications/notificationsContext';
 
 const PAGE_SIZE = 4;
 
 function HelpPage() {
   const { t } = useI18n();
+  const { addNotification } = useNotifications();
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -17,7 +20,14 @@ function HelpPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modal, setModal] = useState({ open: false, mode: 'add', row: null });
   const [tickets, setTickets] = useState([]);
-  const [form, setForm] = useState({ id: '', subject: '', priority: 'medium', assignee: '', status: 'open' });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: { id: '', subject: '', priority: 'medium', assignee: '', status: 'open' },
+  });
 
   useEffect(() => {
     let ignore = false;
@@ -40,6 +50,7 @@ function HelpPage() {
       .catch(() => {
         if (!ignore) {
           setTickets([]);
+          toast.error('Error occurred');
         }
       })
       .finally(() => {
@@ -75,40 +86,49 @@ function HelpPage() {
   }, [query, priorityFilter]);
 
   function openAddModal() {
-    setForm({ id: `SUP-${8800 + tickets.length + 1}`, subject: '', priority: 'medium', assignee: '', status: 'open' });
+    reset({ id: `SUP-${8800 + tickets.length + 1}`, subject: '', priority: 'medium', assignee: '', status: 'open' });
     setModal({ open: true, mode: 'add', row: null });
   }
 
   function openUpdateModal(row) {
     if (!row) return;
-    setForm({ id: row.id || '', subject: row.subject || '', priority: row.priority || 'medium', assignee: row.assignee || '', status: row.status || 'open' });
+    reset({ id: row.id || '', subject: row.subject || '', priority: row.priority || 'medium', assignee: row.assignee || '', status: row.status || 'open' });
     setModal({ open: true, mode: 'update', row });
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function onSubmit(values) {
     setIsSubmitting(true);
     try {
       if (modal.mode === 'add') {
-        const created = await addPost({ title: form.subject || 'New Support Ticket', body: 'Created from dashboard', userId: 1 });
+        const created = await addPost({ title: values.subject, body: 'Created from dashboard', userId: 1 });
         setTickets((prev) => [
           {
-            id: form.id || `SUP-${8800 + created.id}`,
+            id: values.id,
             rawId: created.id,
-            subject: form.subject || created.title,
-            priority: form.priority || 'medium',
-            assignee: form.assignee || 'Agent #1',
-            status: form.status || 'open',
+            subject: values.subject,
+            priority: values.priority,
+            assignee: values.assignee,
+            status: values.status,
           },
           ...prev,
         ]);
+        addNotification({
+          title: 'Ticket added',
+          detail: `${values.id} was created for ${values.assignee}.`,
+        });
         toast.success('Ticket added successfully');
       } else if (modal.row?.rawId) {
-        await updatePost(modal.row.rawId, { title: form.subject || modal.row.subject, body: 'Updated from dashboard' });
-        setTickets((prev) => prev.map((item) => (item.rawId === modal.row.rawId ? { ...item, id: form.id || item.id, subject: form.subject || item.subject, priority: form.priority || item.priority, assignee: form.assignee || item.assignee, status: form.status || item.status } : item)));
+        await updatePost(modal.row.rawId, { title: values.subject, body: 'Updated from dashboard' });
+        setTickets((prev) => prev.map((item) => (item.rawId === modal.row.rawId ? { ...item, id: values.id, subject: values.subject, priority: values.priority, assignee: values.assignee, status: values.status } : item)));
+        addNotification({
+          title: 'Ticket updated',
+          detail: `${values.id} was updated successfully.`,
+        });
         toast.success('Ticket updated successfully');
       }
       setModal({ open: false, mode: 'add', row: null });
+    } catch {
+      toast.error('Error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -193,34 +213,40 @@ function HelpPage() {
       >
         <form
           className="space-y-4"
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
         >
           <label className="block text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
             ID
-            <input value={form.id} onChange={(e) => setForm((prev) => ({ ...prev, id: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+            <input {...register('id', { required: 'Ticket ID is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.id ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+            {errors.id ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.id.message}</p> : null}
           </label>
           <label className="block text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
             {t('support.open_tickets')}
-            <input value={form.subject} onChange={(e) => setForm((prev) => ({ ...prev, subject: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+            <input {...register('subject', { required: 'Subject is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.subject ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+            {errors.subject ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.subject.message}</p> : null}
           </label>
           <label className="block text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
             {t('support.priority')}
-            <select value={form.priority} onChange={(e) => setForm((prev) => ({ ...prev, priority: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]">
+            <select {...register('priority', { required: 'Priority is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.priority ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}>
               <option value="high">High</option>
               <option value="medium">Medium</option>
               <option value="low">Low</option>
             </select>
+            {errors.priority ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.priority.message}</p> : null}
           </label>
           <label className="block text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
             {t('support.assignee')}
-            <input value={form.assignee} onChange={(e) => setForm((prev) => ({ ...prev, assignee: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+            <input {...register('assignee', { required: 'Assignee is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.assignee ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+            {errors.assignee ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.assignee.message}</p> : null}
           </label>
           <label className="block text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
             {t('support.status')}
-            <select value={form.status} onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]">
+            <select {...register('status', { required: 'Status is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.status ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}>
               <option value="open">{t('support.open')}</option>
               <option value="in_progress">{t('support.in_progress')}</option>
             </select>
+            {errors.status ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.status.message}</p> : null}
           </label>
           <div className="flex justify-end gap-2">
             <button type="button" disabled={isSubmitting} onClick={() => setModal({ open: false, mode: 'add', row: null })} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">Cancel</button>

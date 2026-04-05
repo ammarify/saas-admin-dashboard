@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import { useI18n } from '../../../shared/i18n/I18nProvider';
 import { getProducts } from '../../../services/api/dummyJsonApi';
 import { SkeletonCard } from '../../../shared/components/ui/Skeleton';
@@ -28,6 +29,11 @@ function SettingsPage() {
             avgOrder: `$${avgOrder.toFixed(2)}`,
             bounce: `${Math.max(18, 42 - Math.round(conversion))}%`,
           });
+        }
+      })
+      .catch(() => {
+        if (!ignore) {
+          toast.error('Error occurred');
         }
       })
       .finally(() => {

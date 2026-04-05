@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useI18n } from '../../../shared/i18n/I18nProvider';
 import Pagination from '../../../shared/components/ui/Pagination';
 import Modal from '../../../shared/components/ui/Modal';
 import { SkeletonRow } from '../../../shared/components/ui/Skeleton';
 import { toast } from 'react-toastify';
 import { addTodo, getTodos, updateTodo } from '../../../services/api/dummyJsonApi';
+import { useNotifications } from '../../../shared/notifications/notificationsContext';
 
 const PAGE_SIZE = 5;
 
 function PaymentsPage() {
   const { t } = useI18n();
+  const { addNotification } = useNotifications();
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -17,7 +20,14 @@ function PaymentsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modal, setModal] = useState({ open: false, mode: 'add', row: null });
   const [payments, setPayments] = useState([]);
-  const [form, setForm] = useState({ id: '', method: '', amount: '', date: '', status: 'status_pending' });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: { id: '', method: '', amount: '', date: '', status: 'status_pending' },
+  });
 
   useEffect(() => {
     let ignore = false;
@@ -40,6 +50,7 @@ function PaymentsPage() {
       .catch(() => {
         if (!ignore) {
           setPayments([]);
+          toast.error('Error occurred');
         }
       })
       .finally(() => {
@@ -74,41 +85,50 @@ function PaymentsPage() {
   }, [query, statusFilter]);
 
   function openAddModal() {
-    setForm({ id: `PAY-${5500 + payments.length + 1}`, method: '', amount: '', date: new Date().toISOString().slice(0, 10), status: 'status_pending' });
+    reset({ id: `PAY-${5500 + payments.length + 1}`, method: '', amount: '', date: new Date().toISOString().slice(0, 10), status: 'status_pending' });
     setModal({ open: true, mode: 'add', row: null });
   }
 
   function openUpdateModal(row) {
     if (!row) return;
-    setForm({ id: row.id || '', method: row.method || '', amount: String(row.amount).replace(/[^\d.]/g, ''), date: row.date || '', status: row.status || 'status_pending' });
+    reset({ id: row.id || '', method: row.method || '', amount: String(row.amount).replace(/[^\d.]/g, ''), date: row.date || '', status: row.status || 'status_pending' });
     setModal({ open: true, mode: 'update', row });
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function onSubmit(values) {
     setIsSubmitting(true);
-    const numericAmount = Number(String(form.amount || '').replace(/[^\d.]/g, '')) || 0;
+    const numericAmount = Number(String(values.amount || '').replace(/[^\d.]/g, '')) || 0;
     try {
       if (modal.mode === 'add') {
-        const created = await addTodo({ todo: form.method || 'Payment', completed: false, userId: 1 });
+        const created = await addTodo({ todo: values.method, completed: false, userId: 1 });
         setPayments((prev) => [
           {
-            id: form.id || `PAY-${5500 + created.id}`,
+            id: values.id,
             rawId: created.id,
-            method: form.method || 'Card',
+            method: values.method,
             amount: `$${numericAmount.toFixed(2)}`,
-            status: form.status || 'status_pending',
-            date: form.date || new Date().toISOString().slice(0, 10),
+            status: values.status,
+            date: values.date,
           },
           ...prev,
         ]);
+        addNotification({
+          title: 'Payment added',
+          detail: `${values.id} using ${values.method} was added.`,
+        });
         toast.success('Payment added successfully');
       } else if (modal.row?.rawId) {
         await updateTodo(modal.row.rawId, { completed: true });
-        setPayments((prev) => prev.map((item) => (item.rawId === modal.row.rawId ? { ...item, id: form.id || item.id, method: form.method || item.method, amount: `$${numericAmount.toFixed(2)}`, date: form.date || item.date, status: form.status || 'status_paid' } : item)));
+        setPayments((prev) => prev.map((item) => (item.rawId === modal.row.rawId ? { ...item, id: values.id, method: values.method, amount: `$${numericAmount.toFixed(2)}`, date: values.date, status: values.status } : item)));
+        addNotification({
+          title: 'Payment updated',
+          detail: `${values.id} was updated to ${values.method}.`,
+        });
         toast.success('Payment updated successfully');
       }
       setModal((prev) => ({ ...prev, open: false }));
+    } catch {
+      toast.error('Error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -167,12 +187,12 @@ function PaymentsPage() {
                 <td className="px-5 py-3 font-semibold">{payment.amount}</td>
                 <td className="px-5 py-3">{payment.date}</td>
                 <td className="px-5 py-3">
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] dark:shadow-none ${
                     payment.status === 'status_paid'
-                      ? 'bg-[#e9f8f0] text-[#1e9c67]'
+                      ? 'border-[#cdebdc] bg-[#eefaf4] text-[#1e9c67] dark:border-[#1f5f4a] dark:bg-[#102c24] dark:text-[#7ee2b8]'
                       : payment.status === 'status_pending'
-                        ? 'bg-[#fff8e9] text-[#c58d1b]'
-                        : 'bg-[#fdeeee] text-[#d45555]'
+                        ? 'border-[#f4e1b4] bg-[#fff8e9] text-[#c58d1b] dark:border-[#6b5320] dark:bg-[#31250e] dark:text-[#f3ca74]'
+                        : 'border-[#f0cfd3] bg-[#fdeeee] text-[#d45555] dark:border-[#6f3041] dark:bg-[#30111a] dark:text-[#ff9cab]'
                   }`}>
                     {t(`payments.${payment.status}`)}
                   </span>
@@ -199,31 +219,36 @@ function PaymentsPage() {
         title={`${modal.mode === 'add' ? t('common.add') : t('common.update')} ${t('payments.title')}`}
         subtitle={t('payments.subtitle')}
       >
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('payments.col_id')}
-              <input value={form.id} onChange={(e) => setForm((prev) => ({ ...prev, id: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input {...register('id', { required: 'Payment ID is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.id ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+              {errors.id ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.id.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('payments.col_method')}
-              <input value={form.method} onChange={(e) => setForm((prev) => ({ ...prev, method: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input {...register('method', { required: 'Payment method is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.method ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+              {errors.method ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.method.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('payments.col_amount')}
-              <input value={form.amount} onChange={(e) => setForm((prev) => ({ ...prev, amount: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input type="number" min="0.01" step="0.01" {...register('amount', { required: 'Amount is required', min: { value: 0.01, message: 'Amount must be greater than 0' } })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.amount ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+              {errors.amount ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.amount.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('payments.col_date')}
-              <input value={form.date} onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input type="date" {...register('date', { required: 'Date is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.date ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+              {errors.date ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.date.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('payments.col_status')}
-              <select value={form.status} onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]">
+              <select {...register('status', { required: 'Status is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.status ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}>
                 <option value="status_paid">{t('payments.status_paid')}</option>
                 <option value="status_pending">{t('payments.status_pending')}</option>
                 <option value="status_refunded">{t('payments.status_refunded')}</option>
               </select>
+              {errors.status ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.status.message}</p> : null}
             </label>
           </div>
           <div className="flex justify-end gap-2">

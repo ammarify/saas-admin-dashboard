@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useI18n } from '../../../shared/i18n/I18nProvider';
 import Pagination from '../../../shared/components/ui/Pagination';
 import Modal from '../../../shared/components/ui/Modal';
@@ -6,11 +7,13 @@ import { SkeletonRow } from '../../../shared/components/ui/Skeleton';
 import { toast } from 'react-toastify';
 import { addUser, getUsers, updateUser } from '../../../services/api/dummyJsonApi';
 import { mapAccounts } from '../../../services/api/fakeStoreMappers';
+import { useNotifications } from '../../../shared/notifications/notificationsContext';
 
 const PAGE_SIZE = 5;
 
 function AccountsPage() {
   const { t } = useI18n();
+  const { addNotification } = useNotifications();
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -18,7 +21,14 @@ function AccountsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modal, setModal] = useState({ open: false, mode: 'add', row: null });
   const [accounts, setAccounts] = useState([]);
-  const [form, setForm] = useState({ name: '', role: '', email: '', status: 'status_active' });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: { name: '', role: '', email: '', status: 'status_active' },
+  });
 
   useEffect(() => {
     let ignore = false;
@@ -32,6 +42,7 @@ function AccountsPage() {
       .catch(() => {
         if (!ignore) {
           setAccounts([]);
+          toast.error('Error occurred');
         }
       })
       .finally(() => {
@@ -67,25 +78,24 @@ function AccountsPage() {
   }, [query, statusFilter]);
 
   function openAddModal() {
-    setForm({ name: '', role: '', email: '', status: 'status_active' });
+    reset({ name: '', role: '', email: '', status: 'status_active' });
     setModal({ open: true, mode: 'add', row: null });
   }
 
   function openUpdateModal(row) {
     if (!row) return;
-    setForm({ name: row.name || '', role: row.role || '', email: row.email || '', status: row.status || 'status_active' });
+    reset({ name: row.name || '', role: row.role || '', email: row.email || '', status: row.status || 'status_active' });
     setModal({ open: true, mode: 'update', row });
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function onSubmit(values) {
     setIsSubmitting(true);
-    const [firstName, ...rest] = form.name.trim().split(' ');
+    const [firstName, ...rest] = values.name.trim().split(' ');
     const lastName = rest.join(' ') || 'Member';
     const payload = {
       firstName: firstName || 'New',
       lastName,
-      company: { title: form.role.trim() || 'Staff' },
+      company: { title: values.role.trim() },
     };
     try {
       if (modal.mode === 'add') {
@@ -93,19 +103,30 @@ function AccountsPage() {
         setAccounts((prev) => [
           {
             ...mapAccounts([created])[0],
-            role: form.role || 'Staff',
-            email: form.email || `${(form.name || 'new').toLowerCase().replace(/\s+/g, '.')}@company.com`,
-            status: form.status || 'status_active',
+            name: values.name,
+            role: values.role,
+            email: values.email,
+            status: values.status,
           },
           ...prev,
         ]);
+        addNotification({
+          title: 'Account added',
+          detail: `${values.name.trim()} joined as ${values.role.trim()}.`,
+        });
         toast.success('Account added successfully');
       } else if (modal.row?.id) {
         await updateUser(modal.row.id, payload);
-        setAccounts((prev) => prev.map((item) => (item.id === modal.row.id ? { ...item, name: form.name || item.name, role: form.role || item.role, email: form.email || item.email, status: form.status || item.status } : item)));
+        setAccounts((prev) => prev.map((item) => (item.id === modal.row.id ? { ...item, name: values.name, role: values.role, email: values.email, status: values.status } : item)));
+        addNotification({
+          title: 'Account updated',
+          detail: `${values.name.trim()} was updated successfully.`,
+        });
         toast.success('Account updated successfully');
       }
       setModal((prev) => ({ ...prev, open: false }));
+    } catch {
+      toast.error('Error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -161,8 +182,10 @@ function AccountsPage() {
                 <td className="px-5 py-3">{account.role}</td>
                 <td className="px-5 py-3">{account.email}</td>
                 <td className="px-5 py-3">
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                    account.status === 'status_active' ? 'bg-[#e9f8f0] text-[#1e9c67]' : 'bg-[#edf0ff] text-[#5368d8]'
+                  <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] dark:shadow-none ${
+                    account.status === 'status_active'
+                      ? 'border-[#cdebdc] bg-[#eefaf4] text-[#1e9c67] dark:border-[#1f5f4a] dark:bg-[#102c24] dark:text-[#7ee2b8]'
+                      : 'border-[#d7defb] bg-[#eef1ff] text-[#5368d8] dark:border-[#354a8a] dark:bg-[#16233f] dark:text-[#a9bbff]'
                   }`}>
                     {t(`accounts.${account.status}`)}
                   </span>
@@ -189,26 +212,30 @@ function AccountsPage() {
         title={`${modal.mode === 'add' ? t('common.add') : t('common.update')} ${t('accounts.title')}`}
         subtitle={t('accounts.subtitle')}
       >
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('accounts.col_name')}
-              <input value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input {...register('name', { required: 'Name is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.name ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+              {errors.name ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.name.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('accounts.col_role')}
-              <input value={form.role} onChange={(e) => setForm((prev) => ({ ...prev, role: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input {...register('role', { required: 'Role is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.role ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+              {errors.role ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.role.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('accounts.col_email')}
-              <input value={form.email} onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+              <input {...register('email', { required: 'Email is required', pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email address' } })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.email ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+              {errors.email ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.email.message}</p> : null}
             </label>
             <label className="text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
               {t('accounts.col_status')}
-              <select value={form.status} onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]">
+              <select {...register('status', { required: 'Status is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.status ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`}>
                 <option value="status_active">{t('accounts.status_active')}</option>
                 <option value="status_invited">{t('accounts.status_invited')}</option>
               </select>
+              {errors.status ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.status.message}</p> : null}
             </label>
           </div>
           <div className="flex justify-end gap-2">

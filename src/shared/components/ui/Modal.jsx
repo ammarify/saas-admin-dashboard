@@ -27,7 +27,7 @@ function Modal({ isOpen, title, subtitle, children, onClose }) {
       <button
         type="button"
         aria-label="Close modal"
-        className="absolute inset-0 bg-[#0f172a]/50 backdrop-blur-[1px]"
+        className="absolute inset-0 cursor-pointer bg-[#0f172a]/50 backdrop-blur-[1px]"
         onClick={onClose}
       />
 
@@ -42,7 +42,7 @@ function Modal({ isOpen, title, subtitle, children, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-md border border-[#e7ebf5] text-[#7a86a4] hover:bg-[#f8f9fd] dark:border-[#2f3b54] dark:text-[#9eb0cf] dark:hover:bg-[#182235]"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-[#e7ebf5] text-[#7a86a4] hover:bg-[#f8f9fd] dark:border-[#2f3b54] dark:text-[#9eb0cf] dark:hover:bg-[#182235]"
           >
             ×
           </button>

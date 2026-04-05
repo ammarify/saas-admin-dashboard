@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useI18n } from '../../../shared/i18n/I18nProvider';
 import Pagination from '../../../shared/components/ui/Pagination';
 import Modal from '../../../shared/components/ui/Modal';
 import { SkeletonCard } from '../../../shared/components/ui/Skeleton';
 import { toast } from 'react-toastify';
 import { getComments, updateComment } from '../../../services/api/dummyJsonApi';
+import { useNotifications } from '../../../shared/notifications/notificationsContext';
 
 const PAGE_SIZE = 4;
 
 function ReviewsPage() {
   const { t } = useI18n();
+  const { addNotification } = useNotifications();
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [ratingFilter, setRatingFilter] = useState('all');
@@ -17,7 +20,14 @@ function ReviewsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modal, setModal] = useState({ open: false, row: null });
   const [reviews, setReviews] = useState([]);
-  const [form, setForm] = useState({ customer: '', rating: '5', message: '' });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: { customer: '', rating: '5', message: '' },
+  });
 
   useEffect(() => {
     let ignore = false;
@@ -38,6 +48,7 @@ function ReviewsPage() {
       .catch(() => {
         if (!ignore) {
           setReviews([]);
+          toast.error('Error occurred');
         }
       })
       .finally(() => {
@@ -76,25 +87,30 @@ function ReviewsPage() {
 
   function openUpdateModal(row) {
     if (!row) return;
-    setForm({ customer: row.customer || '', rating: String(row.rating || 5), message: row.message || '' });
+    reset({ customer: row.customer || '', rating: String(row.rating || 5), message: row.message || '' });
     setModal({ open: true, row });
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function onSubmit(values) {
     if (!modal.row?.id) return;
     setIsSubmitting(true);
     try {
-      await updateComment(modal.row.id, { body: form.message.trim() || modal.row.message });
+      await updateComment(modal.row.id, { body: values.message.trim() });
       setReviews((prev) =>
         prev.map((item) =>
           item.id === modal.row.id
-            ? { ...item, customer: form.customer || item.customer, rating: Number(form.rating || item.rating), message: form.message || item.message }
+            ? { ...item, customer: values.customer, rating: Number(values.rating), message: values.message }
             : item
         )
       );
+      addNotification({
+        title: 'Review updated',
+        detail: `Review from ${values.customer.trim()} was updated.`,
+      });
       setModal({ open: false, row: null });
       toast.success('Review updated successfully');
+    } catch {
+      toast.error('Error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -182,19 +198,23 @@ function ReviewsPage() {
       >
         <form
           className="space-y-4"
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
         >
           <label className="block text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
             {t('customers.col_name')}
-            <input value={form.customer} onChange={(e) => setForm((prev) => ({ ...prev, customer: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+            <input {...register('customer', { required: 'Customer name is required' })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.customer ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+            {errors.customer ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.customer.message}</p> : null}
           </label>
           <label className="block text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
             Rating
-            <input value={form.rating} onChange={(e) => setForm((prev) => ({ ...prev, rating: e.target.value }))} className="mt-1 h-10 w-full rounded-md border border-[#e7ebf5] bg-white px-3 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+            <input type="number" min="1" max="5" {...register('rating', { required: 'Rating is required', min: { value: 1, message: 'Rating must be at least 1' }, max: { value: 5, message: 'Rating cannot be more than 5' } })} className={`mt-1 h-10 w-full rounded-md border bg-white px-3 text-sm dark:bg-[#0f172a] ${errors.rating ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+            {errors.rating ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.rating.message}</p> : null}
           </label>
           <label className="block text-xs font-semibold text-[#8f99b0] dark:text-[#94a3b8]">
             {t('reviews.title')}
-            <textarea value={form.message} onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))} rows={4} className="mt-1 w-full rounded-md border border-[#e7ebf5] bg-white px-3 py-2 text-sm dark:border-[#2f3b54] dark:bg-[#0f172a]" />
+            <textarea {...register('message', { required: 'Review message is required' })} rows={4} className={`mt-1 w-full rounded-md border bg-white px-3 py-2 text-sm dark:bg-[#0f172a] ${errors.message ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e7ebf5] dark:border-[#2f3b54]'}`} />
+            {errors.message ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.message.message}</p> : null}
           </label>
           <div className="flex justify-end gap-2">
             <button type="button" disabled={isSubmitting} onClick={() => setModal({ open: false, row: null })} className="rounded-md border border-[#e7ebf5] px-4 py-2 text-xs font-bold text-[#6f7a96] dark:border-[#2f3b54] dark:text-[#c7d2e4]">Cancel</button>

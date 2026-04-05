@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { APP_PATHS } from '../../../routes/paths';
@@ -33,30 +34,64 @@ function LockIcon() {
   );
 }
 
+function EyeIcon({ isOpen }) {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+      <circle cx="12" cy="12" r="3" />
+      {isOpen ? null : <path d="M4 4 20 20" />}
+    </svg>
+  );
+}
+
 function LoginPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const validationRules = useMemo(
+    () => ({
+      email: {
+        required: 'Email is required',
+        pattern: {
+          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+          message: 'Enter a valid email address',
+        },
+      },
+      password: {
+        required: 'Password is required',
+        minLength: {
+          value: 6,
+          message: 'Password must be at least 6 characters',
+        },
+      },
+    }),
+    [],
+  );
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-    setIsSubmitting(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+  });
 
-    try {
-      const email = form.email.trim().toLowerCase();
-      const password = form.password;
+  async function onSubmit(values) {
+    const email = values.email.trim().toLowerCase();
+    const password = values.password;
 
-      if (email !== DEMO_EMAIL || password !== DEMO_PASSWORD) {
-        toast.error('Invalid credentials. Use demo credentials shown below.');
-        return;
-      }
-
-      saveAuthSession(`${DEMO_EMAIL}:${Date.now()}`);
-      toast.success('Login successful');
-      navigate(APP_PATHS.dashboard, { replace: true });
-    } finally {
-      setIsSubmitting(false);
+    if (email !== DEMO_EMAIL || password !== DEMO_PASSWORD) {
+      toast.error('Invalid credentials. Use demo credentials shown below.');
+      return;
     }
+
+    saveAuthSession(`${DEMO_EMAIL}:${Date.now()}`);
+    toast.success('Login successful. Redirecting to dashboard...');
+    navigate(APP_PATHS.dashboard, { replace: true });
   }
 
   return (
@@ -115,7 +150,7 @@ function LoginPage() {
           <h2 className="mt-3 text-4xl font-extrabold text-[#1e2442] dark:text-[#e5e7eb]">Welcome Back</h2>
           <p className="mt-2 text-sm text-[#7d88a5] dark:text-[#94a3b8]">Sign in to continue to your workspace.</p>
 
-          <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+          <form className="mt-8 space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
             <label className="block text-xs font-semibold uppercase tracking-[0.12em] text-[#8d97b0] dark:text-[#94a3b8]">
               Email
               <div className="relative mt-2">
@@ -124,12 +159,15 @@ function LoginPage() {
                 </span>
                 <input
                   type="email"
-                  value={form.email}
-                  onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+                  autoComplete="email"
+                  {...register('email', validationRules.email)}
                   placeholder="admin@shopsync.com"
-                  className="h-12 w-full rounded-xl border border-[#e1e6f2] bg-[#f8faff] pl-10 pr-3 text-sm text-[#3d4766] outline-none transition focus:border-[#8fa0df] focus:ring-2 focus:ring-[#8fa0df]/20 dark:border-[#2c3951] dark:bg-[#0f172a] dark:text-[#e2e8f0]"
+                  className={`h-12 w-full rounded-xl border bg-[#f8faff] pl-10 pr-3 text-sm text-[#3d4766] outline-none transition focus:border-[#8fa0df] focus:ring-2 focus:ring-[#8fa0df]/20 dark:bg-[#0f172a] dark:text-[#e2e8f0] ${
+                    errors.email ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e1e6f2] dark:border-[#2c3951]'
+                  }`}
                 />
               </div>
+              {errors.email ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.email.message}</p> : null}
             </label>
 
             <label className="block text-xs font-semibold uppercase tracking-[0.12em] text-[#8d97b0] dark:text-[#94a3b8]">
@@ -139,13 +177,25 @@ function LoginPage() {
                   <LockIcon />
                 </span>
                 <input
-                  type="password"
-                  value={form.password}
-                  onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
+                  type={isPasswordVisible ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  {...register('password', validationRules.password)}
                   placeholder="Enter password"
-                  className="h-12 w-full rounded-xl border border-[#e1e6f2] bg-[#f8faff] pl-10 pr-3 text-sm text-[#3d4766] outline-none transition focus:border-[#8fa0df] focus:ring-2 focus:ring-[#8fa0df]/20 dark:border-[#2c3951] dark:bg-[#0f172a] dark:text-[#e2e8f0]"
+                  className={`h-12 w-full rounded-xl border bg-[#f8faff] pl-10 pr-11 text-sm text-[#3d4766] outline-none transition focus:border-[#8fa0df] focus:ring-2 focus:ring-[#8fa0df]/20 dark:bg-[#0f172a] dark:text-[#e2e8f0] ${
+                    errors.password ? 'border-[#d45555] dark:border-[#a54a4a]' : 'border-[#e1e6f2] dark:border-[#2c3951]'
+                  }`}
                 />
+                <button
+                  type="button"
+                  onClick={() => setIsPasswordVisible((current) => !current)}
+                  aria-label={isPasswordVisible ? 'Hide password' : 'Show password'}
+                  aria-pressed={isPasswordVisible}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8e98b3] transition hover:text-[#5468d8] dark:text-[#94a3b8] dark:hover:text-[#a9b5f3]"
+                >
+                  <EyeIcon isOpen={isPasswordVisible} />
+                </button>
               </div>
+              {errors.password ? <p className="mt-1 text-[11px] font-semibold text-[#d45555]">{errors.password.message}</p> : null}
             </label>
 
             <button
